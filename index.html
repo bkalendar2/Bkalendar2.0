@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BKalendar Plus - Đồng bộ Thời khóa biểu & Lịch thi HCMUT</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Identity Services (GIS) SDK -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+  </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-blue-900 to-indigo-900 text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="bg-white text-blue-900 p-2 rounded-lg font-black text-xl shadow">
+          BK
+        </div>
+        <div>
+          <h1 class="text-lg font-bold flex items-center gap-2">
+            BKalendar Plus
+            <span class="bg-blue-600 text-blue-100 text-xs px-2 py-0.5 rounded-full font-medium">Bản Cá Nhân</span>
+          </h1>
+          <p class="text-xs text-blue-200">Đồng bộ Thời khóa biểu & Lịch thi MyBK trực tiếp vào Google Calendar</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-3 text-sm">
+        <button onclick="openConfigModal()" class="text-blue-200 hover:text-white transition flex items-center gap-1.5 text-xs bg-blue-800/60 hover:bg-blue-800 px-3 py-1.5 rounded-lg border border-blue-700">
+          <i class="fa-solid fa-gear"></i> <span id="nav-gcal-status">Cài đặt Google OAuth</span>
+        </button>
+        <a href="https://mybk.hcmut.edu.vn/app" target="_blank" class="bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow-sm">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i> Mở MyBK
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-6xl mx-auto px-4 py-6 flex-1 w-full">
+    
+    <!-- Navigation Tabs -->
+    <div class="flex border-b border-slate-200 mb-6 space-x-2">
+      <button id="tab-exam-btn" onclick="switchTab('exam')" class="tab-btn px-5 py-2.5 font-semibold text-blue-900 border-b-2 border-blue-900 flex items-center gap-2 transition">
+        <i class="fa-solid fa-graduation-cap"></i> Lịch Kiểm Tra - Thi
+        <span id="exam-badge" class="hidden bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+      </button>
+      <button id="tab-timetable-btn" onclick="switchTab('timetable')" class="tab-btn px-5 py-2.5 font-semibold text-slate-500 hover:text-slate-800 border-b-2 border-transparent flex items-center gap-2 transition">
+        <i class="fa-solid fa-calendar-days"></i> Thời Khóa Biểu Tuần
+        <span id="timetable-badge" class="hidden bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+      </button>
+    </div>
+
+    <!-- Section 1: Input Area -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
+        <div>
+          <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-clipboard text-blue-600"></i> Dán dữ liệu sao chép từ MyBK
+          </h2>
+          <p class="text-xs text-slate-500 mt-0.5" id="input-desc">
+            Vào <span class="font-medium text-slate-700">MyBK &gt; Thông tin sinh viên &gt; Lịch thi</span>, bôi đen (Ctrl+A) và dán (Ctrl+V) vào ô dưới đây.
+          </p>
+        </div>
+        <div class="flex gap-2">
+          <button id="btn-load-sample" onclick="loadSampleData()" class="px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition border border-blue-200 flex items-center gap-1.5">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Dán 4 môn thi mẫu của bạn
+          </button>
+          <button onclick="clearInput()" class="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition flex items-center gap-1.5">
+            <i class="fa-solid fa-trash-can"></i> Xóa
+          </button>
+        </div>
+      </div>
+
+      <textarea id="raw-input" rows="5" class="w-full text-xs font-mono p-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition resize-y" placeholder="Dán nội dung sao chép từ trang MyBK vào đây..."></textarea>
+
+      <div class="mt-3 flex items-center justify-between flex-wrap gap-3">
+        <div class="text-xs text-slate-500 flex items-center gap-1.5">
+          <i class="fa-solid fa-shield-halved text-emerald-600"></i>
+          <span>Xử lý 100% tại trình duyệt của bạn (Client-side), an toàn tuyệt đối.</span>
+        </div>
+        <button onclick="parseContent()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm px-5 py-2 rounded-xl transition shadow flex items-center gap-2">
+          <i class="fa-solid fa-bolt"></i> Nhận Diện & Phân Tích Lịch
+        </button>
+      </div>
+    </div>
+
+    <!-- Section 2: Results Display for Exam Schedule -->
+    <div id="exam-results-section" class="space-y-4">
+      
+      <!-- Action Bar when results exist -->
+      <div id="exam-actions-bar" class="hidden bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 border border-blue-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-bold text-blue-900" id="exam-stat-count">Đã tìm thấy 4 môn thi</span>
+            <span class="bg-blue-200 text-blue-800 text-xs px-2 py-0.5 rounded-full font-semibold" id="exam-stat-semester">HK 20261</span>
+          </div>
+          <p class="text-xs text-slate-600 mt-1">Chọn đồng bộ trực tiếp lên Google Calendar chỉ với 1 click hoặc tải file dự phòng.</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Direct Sync Button (The Star Feature) -->
+          <button id="btn-sync-gcal" onclick="handleDirectGoogleSync()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-md flex items-center gap-2 transform active:scale-95">
+            <i class="fa-brands fa-google text-yellow-300 text-sm"></i>
+            <span>Đồng Bộ Trực Tiếp Lên Google Calendar</span>
+          </button>
+
+          <button onclick="downloadExamICS()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold text-xs px-3 py-2.5 rounded-xl transition shadow-sm flex items-center gap-1.5" title="Tải file .ics dự phòng nếu muốn">
+            <i class="fa-solid fa-download text-slate-500"></i> Tải File .ics
+          </button>
+        </div>
+      </div>
+
+      <!-- Sync Progress Banner (Hidden by default) -->
+      <div id="sync-progress-box" class="hidden bg-white border border-blue-300 rounded-2xl p-4 shadow-sm animate-pulse">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-blue-900 flex items-center gap-2" id="sync-progress-text">
+            <i class="fa-solid fa-spinner fa-spin text-blue-600"></i> Đang kết nối Google Calendar...
+          </span>
+          <span class="text-xs font-semibold text-blue-700" id="sync-progress-percent">0%</span>
+        </div>
+        <div class="w-full bg-slate-200 rounded-full h-2">
+          <div id="sync-progress-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Exam Cards Container -->
+      <div id="exam-cards-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="exam-empty-state" class="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300">
+        <i class="fa-solid fa-calendar-xmark text-4xl text-slate-300 mb-3"></i>
+        <p class="text-slate-600 font-medium text-sm">Chưa có dữ liệu lịch thi nào</p>
+        <p class="text-slate-400 text-xs mt-1">Hãy dán nội dung từ MyBK hoặc bấm "Dán 4 môn thi mẫu của bạn" ở trên để kiểm tra!</p>
+      </div>
+
+    </div>
+
+    <!-- Section 3: Results Display for Timetable (TKB) -->
+    <div id="timetable-results-section" class="hidden space-y-4">
+      <div id="timetable-actions-bar" class="hidden bg-gradient-to-r from-blue-50 via-cyan-50 to-blue-50 border border-blue-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-bold text-blue-900" id="tt-stat-count">0 môn học</span>
+            <span class="bg-cyan-200 text-cyan-800 text-xs px-2 py-0.5 rounded-full font-semibold" id="tt-stat-semester">TKB Học Kỳ</span>
+          </div>
+          <p class="text-xs text-slate-600 mt-1">Thời khóa biểu lặp lại hàng tuần theo tiết học và phòng học.</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Nút đồng bộ trực tiếp TKB lên Google Calendar -->
+          <button id="btn-sync-tt-gcal" onclick="handleDirectTimetableGoogleSync()" class="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-md flex items-center gap-2 transform active:scale-95">
+            <i class="fa-brands fa-google text-yellow-300 text-sm"></i>
+            <span>Đồng Bộ Trực Tiếp TKB Lên Google Calendar</span>
+          </button>
+
+          <button onclick="downloadTimetableICS()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold text-xs px-3 py-2.5 rounded-xl transition shadow-sm flex items-center gap-1.5" title="Tải file .ics dự phòng">
+            <i class="fa-solid fa-download text-slate-500"></i> Tải File TKB (.ics)
+          </button>
+        </div>
+      </div>
+
+      <!-- Sync Progress Banner for TKB -->
+      <div id="sync-tt-progress-box" class="hidden bg-white border border-cyan-300 rounded-2xl p-4 shadow-sm animate-pulse">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-blue-900 flex items-center gap-2" id="sync-tt-progress-text">
+            <i class="fa-solid fa-spinner fa-spin text-cyan-600"></i> Đang kết nối Google Calendar...
+          </span>
+          <span class="text-xs font-semibold text-cyan-700" id="sync-tt-progress-percent">0%</span>
+        </div>
+        <div class="w-full bg-slate-200 rounded-full h-2">
+          <div id="sync-tt-progress-bar" class="bg-cyan-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <div id="timetable-cards-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Rendered by JS -->
+      </div>
+
+      <div id="timetable-empty-state" class="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300">
+        <i class="fa-solid fa-clock text-4xl text-slate-300 mb-3"></i>
+        <p class="text-slate-600 font-medium text-sm">Chưa có dữ liệu thời khóa biểu</p>
+        <p class="text-slate-400 text-xs mt-1">Dán thời khóa biểu từ trang Thời khóa biểu sinh viên MyBK để hiển thị hoặc bấm nút dán mẫu.</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Google OAuth Client ID Configuration Modal -->
+  <div id="config-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-slate-200">
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-brands fa-google text-blue-600"></i> Cấu hình Đồng bộ Trực tiếp Google Calendar
+        </h3>
+        <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600 text-sm">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-600 leading-relaxed mb-4">
+        Để đồng bộ trực tiếp <strong>1-Click</strong> không cần qua file `.ics`, Google yêu cầu một mã <strong>OAuth Client ID</strong> cho ứng dụng cá nhân của bạn.
+      </p>
+
+      <div class="space-y-3 mb-5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Google OAuth Client ID của bạn:</label>
+          <input type="text" id="cfg-client-id" class="w-full text-xs font-mono p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="vd: 123456789-xxxxxxxx.apps.googleusercontent.com">
+          <p class="text-[11px] text-slate-400 mt-1">Mã này được lưu an toàn trong <code>localStorage</code> trên máy của bạn và không bị gửi đi bất kỳ đâu.</p>
+        </div>
+      </div>
+
+      <!-- Quick Setup Guide -->
+      <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-3 text-xs text-slate-700 space-y-1.5 mb-5">
+        <div class="font-bold text-blue-900 flex items-center gap-1.5">
+          <i class="fa-solid fa-lightbulb text-amber-500"></i> Chưa có Google Client ID? (Chỉ mất 2 phút tạo miễn phí):
+        </div>
+        <ol class="list-decimal list-inside space-y-1 text-[11px] text-slate-600">
+          <li>Vào <a href="https://console.cloud.google.com/" target="_blank" class="text-blue-600 underline font-medium">Google Cloud Console</a> &rarr; Tạo 1 Project mới.</li>
+          <li>Vào <strong>APIs & Services &gt; Library</strong> &rarr; Tìm và Bật <strong>Google Calendar API</strong>.</li>
+          <li>Vào <strong>OAuth consent screen</strong> &rarr; Chọn <em>External</em> &rarr; Điền tên và thêm email của bạn vào <em>Test Users</em>.</li>
+          <li>Vào <strong>Credentials &gt; Create Credentials &gt; OAuth client ID</strong> &rarr; Chọn <em>Web application</em> &rarr; Thêm <strong>Authorized JavaScript origins</strong>: <code class="bg-white px-1 py-0.5 rounded border">http://localhost:3000</code>.</li>
+          <li>Sao chép <strong>Client ID</strong> dán vào ô trên và bấm Lưu!</li>
+        </ol>
+      </div>
+
+      <div class="flex justify-end gap-2">
+        <button onclick="closeConfigModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+          Hủy
+        </button>
+        <button onclick="saveClientId()" class="px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition shadow flex items-center gap-1.5">
+          <i class="fa-solid fa-floppy-disk"></i> Lưu & Sử Dụng
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Notification Modal -->
+  <div id="success-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center border border-slate-200">
+      <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-sm">
+        <i class="fa-solid fa-check"></i>
+      </div>
+      <h3 class="text-lg font-bold text-slate-800 mb-1">Đồng Bộ Thành Công!</h3>
+      <p class="text-xs text-slate-600 mb-5" id="success-modal-msg">
+        Toàn bộ các môn thi đã được đẩy trực tiếp vào Google Calendar của bạn.
+      </p>
+      <div class="flex justify-center gap-3">
+        <a href="https://calendar.google.com/" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-5 py-2.5 rounded-xl transition shadow flex items-center gap-2">
+          <i class="fa-brands fa-google"></i> Mở Google Calendar
+        </a>
+        <button onclick="document.getElementById('success-modal').classList.add('hidden')" class="px-4 py-2.5 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+          Đóng
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 text-slate-400 text-xs py-5 mt-10">
+    <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div>
+        <p class="text-slate-300 font-semibold">BKalendar Plus (Personal Edition)</p>
+        <p class="text-slate-500">Mô phỏng BKalendar với tính năng đồng bộ trực tiếp Lịch thi MyBK</p>
+      </div>
+      <div class="text-slate-500">
+        Dành riêng cho sinh viên HCMUT
+      </div>
+    </div>
+  </footer>
+
+  <!-- JavaScript Logic -->
+  <script>
+    let currentTab = 'exam';
+    let parsedExams = [];
+    let parsedTimetables = [];
+
+    const CLIENT_ID_STORAGE_KEY = 'bkalendar_google_client_id';
+
+    // Mẫu dữ liệu Lịch thi thực tế từ MyBK
+    const SAMPLE_EXAM_DATA = `Học kỳ\tMôn học\tNhóm lớp\tNgày thi\tLoại thi\tCơ sở\tMã phòng\tThứ\tGiờ bắt đầu\tTổng số phút\tCập nhật cuối cùng vào lúc
+20261\tEE2081 - Ngôn ngữ lập trình\tL09_A_Ktr\t2026-10-14\tGK\tBK-CS2\tH6-208\t4\t07g00\t60\t2026-09-21 14:09:00
+20261\tEE2021 - Cơ sở Điện tử Công suất\tL04_B_Ktr\t2026-10-17\tGK\tBK-CS2\tH6-213\t7\t07g00\t50\t2026-09-21 14:09:00
+20261\tEE2019 - Cơ sở Điều khiển Tự động\tL06_B_Ktr\t2026-10-12\tGK\tBK-CS2\tH6-113\t2\t09g00\t60\t2026-09-21 14:09:00
+20261\tEE2003 - Trường điện từ\tL01_B_Ktr\t2026-10-12\tGK\tBK-CS2\tH6-313\t2\t15g00\t50\t2026-09-21 14:09:00`;
+
+    // Mẫu dữ liệu Thời khóa biểu MyBK chuẩn
+    const SAMPLE_TIMETABLE_DATA = `Mã MH\tTên môn học\tNhóm-Tổ\tSố TC\tMã lớp\tThứ\tTiết\tGiờ học\tPhòng\tCơ sở\tTuần học
+EE2081\tNgôn ngữ lập trình\tL09\t3\tEE2081_L09\t4\t7 - 9\t13:00 - 15:50\tH6-208\tBK-CS2\t--|--|03|04|05|06|07|08|--|10|11|12|13|14|15|16|17|--|--
+EE2021\tCơ sở Điện tử Công suất\tL04\t3\tEE2021_L04\t7\t2 - 4\t07:00 - 09:50\tH6-213\tBK-CS2\t--|--|03|04|05|06|07|08|--|10|11|12|13|14|15|16|17|--|--
+EE2019\tCơ sở Điều khiển Tự động\tL06\t3\tEE2019_L06\t2\t4 - 6\t09:00 - 11:50\tH6-113\tBK-CS2\t--|--|03|04|05|06|07|08|--|10|11|12|13|14|15|16|17|--|--
+EE2003\tTrường điện từ\tL01\t3\tEE2003_L01\t2\t10 - 12\t15:00 - 17:50\tH6-313\tBK-CS2\t--|--|03|04|05|06|07|08|--|10|11|12|13|14|15|16|17|--|--`;
+
+    // Khởi tạo trạng thái
+    window.addEventListener('DOMContentLoaded', () => {
+      updateNavStatus();
+    });
+
+    function updateNavStatus() {
+      const saved = localStorage.getItem(CLIENT_ID_STORAGE_KEY);
+      const statusSpan = document.getElementById('nav-gcal-status');
+      if (saved) {
+        statusSpan.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i> Đã có Google OAuth';
+      } else {
+        statusSpan.innerHTML = '<i class="fa-solid fa-circle-exclamation text-amber-400"></i> Cài đặt Google OAuth';
+      }
+    }
+
+    function openConfigModal() {
+      const saved = localStorage.getItem(CLIENT_ID_STORAGE_KEY) || '';
+      document.getElementById('cfg-client-id').value = saved;
+      document.getElementById('config-modal').classList.remove('hidden');
+    }
+
+    function closeConfigModal() {
+      document.getElementById('config-modal').classList.add('hidden');
+    }
+
+    function saveClientId() {
+      const val = document.getElementById('cfg-client-id').value.trim();
+      if (!val) {
+        alert('Vui lòng nhập Google Client ID!');
+        return;
+      }
+      localStorage.setItem(CLIENT_ID_STORAGE_KEY, val);
+      updateNavStatus();
+      closeConfigModal();
+      alert('Đã lưu Google Client ID thành công! Bạn có thể bấm "Đồng Bộ Trực Tiếp Lên Google Calendar" ngay bây giờ.');
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      const examBtn = document.getElementById('tab-exam-btn');
+      const ttBtn = document.getElementById('tab-timetable-btn');
+      const examSec = document.getElementById('exam-results-section');
+      const ttSec = document.getElementById('timetable-results-section');
+      const inputDesc = document.getElementById('input-desc');
+      const btnSample = document.getElementById('btn-load-sample');
+
+      if (tab === 'exam') {
+        examBtn.className = 'tab-btn px-5 py-2.5 font-semibold text-blue-900 border-b-2 border-blue-900 flex items-center gap-2 transition';
+        ttBtn.className = 'tab-btn px-5 py-2.5 font-semibold text-slate-500 hover:text-slate-800 border-b-2 border-transparent flex items-center gap-2 transition';
+        examSec.classList.remove('hidden');
+        ttSec.classList.add('hidden');
+        inputDesc.innerHTML = 'Vào <span class="font-medium text-slate-700">MyBK &gt; Thông tin sinh viên &gt; Lịch thi</span>, bôi đen (Ctrl+A) và dán (Ctrl+V) vào ô dưới đây.';
+        btnSample.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Dán 4 môn thi mẫu của bạn';
+      } else {
+        ttBtn.className = 'tab-btn px-5 py-2.5 font-semibold text-blue-900 border-b-2 border-blue-900 flex items-center gap-2 transition';
+        examBtn.className = 'tab-btn px-5 py-2.5 font-semibold text-slate-500 hover:text-slate-800 border-b-2 border-transparent flex items-center gap-2 transition';
+        ttSec.classList.remove('hidden');
+        examSec.classList.add('hidden');
+        inputDesc.innerHTML = 'Vào <span class="font-medium text-slate-700">MyBK &gt; Thông tin sinh viên &gt; Thời khóa biểu (hoặc ĐKMH)</span>, bôi đen (Ctrl+A) và dán (Ctrl+V) vào ô dưới đây.';
+        btnSample.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Dán mẫu TKB tuần (4 môn)';
+      }
+    }
+
+    function loadSampleData() {
+      if (currentTab === 'exam') {
+        document.getElementById('raw-input').value = SAMPLE_EXAM_DATA;
+      } else {
+        document.getElementById('raw-input').value = SAMPLE_TIMETABLE_DATA;
+      }
+      parseContent();
+    }
+
+    function clearInput() {
+      document.getElementById('raw-input').value = '';
+    }
+
+    function parseContent() {
+      const raw = document.getElementById('raw-input').value.trim();
+      if (!raw) {
+        alert('Vui lòng dán nội dung từ MyBK vào ô trước khi phân tích!');
+        return;
+      }
+
+      // Nhận diện dữ liệu: Lịch thi hay Thời khóa biểu
+      const isExam = raw.includes('LỊCH KIỂM TRA') || raw.includes('Tổng số phút') || raw.includes('Loại thi') || raw.includes('Mã phòng') || raw.includes('GK') || raw.includes('CK');
+
+      if (currentTab === 'timetable' || (!isExam && (raw.includes('Tiết') || raw.includes('Thứ') || raw.includes('Tuần')))) {
+        // Ưu tiên parse Thời khóa biểu
+        parsedTimetables = parseMyBKTimetable(raw);
+        if (parsedTimetables.length > 0) {
+          switchTab('timetable');
+          renderTimetableResults(parsedTimetables);
+          return;
+        }
+      }
+
+      // Mặc định hoặc nhận diện Lịch thi
+      parsedExams = parseMyBKExams(raw);
+      if (parsedExams.length > 0) {
+        switchTab('exam');
+        renderExamResults(parsedExams);
+      } else {
+        // Thử lại với TKB nếu parse thi không ra
+        parsedTimetables = parseMyBKTimetable(raw);
+        if (parsedTimetables.length > 0) {
+          switchTab('timetable');
+          renderTimetableResults(parsedTimetables);
+        } else {
+          alert('Không thể nhận diện dữ liệu! Vui lòng kiểm tra lại nội dung sao chép từ MyBK.');
+        }
+      }
+    }
+
+    function parseMyBKExams(text) {
+      const exams = [];
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+
+      let startIndex = lines.findIndex(l => l.includes('Cập nhật cuối cùng') || l.includes('Tổng số phút'));
+      startIndex = (startIndex === -1) ? 0 : startIndex + 1;
+
+      const tokens = [];
+      for (let i = startIndex; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.startsWith('Trình bày từ dòng') || line.startsWith('Version') || line.startsWith('Copyright')) {
+          break;
+        }
+        if (line.includes('\t')) {
+          tokens.push(...line.split('\t').map(t => t.trim()));
+        } else {
+          tokens.push(line);
+        }
+      }
+
+      let ptr = 0;
+      while (ptr < tokens.length) {
+        const token = tokens[ptr];
+        if (/^\d{5}$/.test(token) && ptr + 9 < tokens.length) {
+          const semester = token;
+          const courseRaw = tokens[ptr + 1];
+          const group = tokens[ptr + 2];
+          const date = tokens[ptr + 3];
+          const examTypeCode = tokens[ptr + 4];
+          const campusCode = tokens[ptr + 5];
+          const room = tokens[ptr + 6];
+          const dayOfWeekStr = tokens[ptr + 7];
+          const timeRaw = tokens[ptr + 8];
+          const durationStr = tokens[ptr + 9];
+          const updatedAt = tokens[ptr + 10] || '';
+
+          if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+            const courseParts = courseRaw.split(/\s*-\s*/);
+            const courseCode = courseParts[0]?.trim() || '';
+            const courseName = courseParts.slice(1).join(' - ').trim() || courseRaw;
+
+            const examType = examTypeCode.toUpperCase() === 'GK' ? 'Giữa kỳ' : 
+                             examTypeCode.toUpperCase() === 'CK' ? 'Cuối kỳ' : examTypeCode;
+
+            const campus = campusCode === 'BK-CS2' ? 'Cơ sở 2 (Dĩ An)' :
+                           campusCode === 'BK-CS1' ? 'Cơ sở 1 (Lý Thường Kiệt)' : campusCode;
+
+            const timeMatch = timeRaw.match(/(\d{1,2})[gG:](\d{2})/);
+            let startHour = 7, startMin = 0;
+            if (timeMatch) {
+              startHour = parseInt(timeMatch[1], 10);
+              startMin = parseInt(timeMatch[2], 10);
+            }
+            const startTime = `${String(startHour).padStart(2, '0')}:${String(startMin).padStart(2, '0')}`;
+
+            const durationMinutes = parseInt(durationStr, 10) || 60;
+            const totalEndMinutes = startHour * 60 + startMin + durationMinutes;
+            const endHour = Math.floor(totalEndMinutes / 60);
+            const endMin = totalEndMinutes % 60;
+            const endTime = `${String(endHour).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`;
+
+            exams.push({
+              semester,
+              courseCode,
+              courseName,
+              group,
+              date,
+              examType,
+              campus,
+              room,
+              dayOfWeek: parseInt(dayOfWeekStr, 10) || 0,
+              startTime,
+              endTime,
+              durationMinutes,
+              updatedAt
+            });
+
+            ptr += (updatedAt && /^\d{4}-\d{2}-\d{2}/.test(updatedAt)) ? 11 : 10;
+            continue;
+          }
+        }
+        ptr++;
+      }
+
+      exams.sort((a, b) => new Date(`${a.date}T${a.startTime}`) - new Date(`${b.date}T${b.startTime}`));
+      return exams;
+    }
+
+    function renderExamResults(exams) {
+      const container = document.getElementById('exam-cards-container');
+      const emptyState = document.getElementById('exam-empty-state');
+      const actionsBar = document.getElementById('exam-actions-bar');
+      const badge = document.getElementById('exam-badge');
+      const statCount = document.getElementById('exam-stat-count');
+      const statSemester = document.getElementById('exam-stat-semester');
+
+      if (!exams.length) {
+        container.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        actionsBar.classList.add('hidden');
+        badge.classList.add('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      actionsBar.classList.remove('hidden');
+      badge.classList.remove('hidden');
+      badge.textContent = exams.length;
+      statCount.textContent = `Đã tìm thấy ${exams.length} môn thi`;
+      statSemester.textContent = `Học kỳ ${exams[0]?.semester || ''}`;
+
+      container.innerHTML = exams.map((ex) => {
+        const isGK = ex.examType === 'Giữa kỳ';
+        const typeBadgeClass = isGK ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-red-100 text-red-800 border-red-300';
+        const [y, m, d] = ex.date.split('-');
+        const dateVn = `${d}/${m}/${y}`;
+        const thuLabel = ex.dayOfWeek === 8 ? 'Chủ Nhật' : `Thứ ${ex.dayOfWeek}`;
+
+        return `
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-start justify-between gap-3 mb-2">
+                <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full border ${typeBadgeClass}">
+                  ${ex.examType}
+                </span>
+                <span class="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                  ${ex.courseCode}
+                </span>
+              </div>
+
+              <h3 class="text-base font-bold text-slate-800 leading-snug mb-3">
+                ${ex.courseName}
+              </h3>
+
+              <div class="space-y-1.5 text-xs text-slate-600 mb-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                <div class="flex items-center gap-2">
+                  <i class="fa-regular fa-calendar text-blue-600 w-4"></i>
+                  <span class="font-medium text-slate-800">${thuLabel}, ngày ${dateVn}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <i class="fa-regular fa-clock text-amber-600 w-4"></i>
+                  <span><strong>${ex.startTime} - ${ex.endTime}</strong> (${ex.durationMinutes} phút)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-location-dot text-rose-600 w-4"></i>
+                  <span>Phòng <strong>${ex.room}</strong> - ${ex.campus}</span>
+                </div>
+                <div class="flex items-center gap-2 text-slate-500">
+                  <i class="fa-solid fa-users text-slate-400 w-4"></i>
+                  <span>Nhóm/Lớp: ${ex.group}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+              <span class="text-[11px] text-slate-400">
+                <i class="fa-solid fa-clock-rotate-left"></i> Cập nhật: ${ex.updatedAt?.split(' ')[0] || 'MyBK'}
+              </span>
+              <span class="text-emerald-600 font-medium flex items-center gap-1">
+                <i class="fa-solid fa-check"></i> Sẵn sàng đồng bộ
+              </span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ==========================================
+    // ĐỒNG BỘ TRỰC TIẾP GOOGLE CALENDAR (OAuth2 + API v3)
+    // ==========================================
+    async function handleDirectGoogleSync() {
+      if (!parsedExams.length) {
+        alert('Chưa có danh sách môn thi để đồng bộ!');
+        return;
+      }
+
+      const clientId = localStorage.getItem(CLIENT_ID_STORAGE_KEY);
+      if (!clientId) {
+        openConfigModal();
+        return;
+      }
+
+      if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
+        alert('Thư viện Google Identity Services đang tải hoặc bị trình duyệt chặn (AdBlock). Vui lòng thử lại sau vài giây!');
+        return;
+      }
+
+      // Khởi tạo OAuth Token Client
+      const tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar',
+        callback: async (tokenResponse) => {
+          if (tokenResponse.error) {
+            alert('Lỗi xác thực Google: ' + tokenResponse.error);
+            return;
+          }
+          await executeDirectCalendarPush(tokenResponse.access_token);
+        }
+      });
+
+      // Mở Popup đăng nhập Google
+      tokenClient.requestAccessToken({ prompt: 'consent' });
+    }
+
+    async function executeDirectCalendarPush(accessToken) {
+      const progressBox = document.getElementById('sync-progress-box');
+      const progressText = document.getElementById('sync-progress-text');
+      const progressBar = document.getElementById('sync-progress-bar');
+      const progressPercent = document.getElementById('sync-progress-percent');
+
+      progressBox.classList.remove('hidden');
+      progressText.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-blue-600"></i> Đang tìm hoặc tạo Lịch thi trên Google Calendar...';
+      progressBar.style.width = '10%';
+      progressPercent.textContent = '10%';
+
+      try {
+        const semester = parsedExams[0]?.semester || 'HCMUT';
+        const targetCalSummary = `Lịch Thi BK - HK ${semester}`;
+
+        // 1. Kiểm tra xem đã có Lịch mang tên này chưa
+        let calendarId = 'primary';
+        const listRes = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+        
+        if (listRes.ok) {
+          const listData = await listRes.json();
+          const existingCal = listData.items?.find(c => c.summary === targetCalSummary);
+          if (existingCal) {
+            calendarId = existingCal.id;
+          } else {
+            // Tạo mới một Calendar riêng biệt
+            const createCalRes = await fetch('https://www.googleapis.com/calendar/v3/calendars', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                summary: targetCalSummary,
+                description: 'Lịch thi HCMUT được đồng bộ tự động từ BKalendar Plus',
+                timeZone: 'Asia/Ho_Chi_Minh'
+              })
+            });
+            if (createCalRes.ok) {
+              const newCal = await createCalRes.json();
+              calendarId = newCal.id;
+            }
+          }
+        }
+
+        // 2. Lấy danh sách sự kiện hiện có trong Lịch đó để tránh trùng lặp (nếu đồng bộ lại)
+        const existingEventsRes = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?maxResults=250`, {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+        const existingEventsData = existingEventsRes.ok ? await existingEventsRes.json() : { items: [] };
+        const existingEvents = existingEventsData.items || [];
+
+        // 3. Đẩy từng môn thi vào Google Calendar
+        let successCount = 0;
+        for (let i = 0; i < parsedExams.length; i++) {
+          const ex = parsedExams[i];
+          const currentPercent = Math.round(((i + 1) / parsedExams.length) * 80) + 15;
+          progressText.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-blue-600"></i> Đang đồng bộ (${i + 1}/${parsedExams.length}): <strong>${ex.courseCode} - ${ex.courseName}</strong>...`;
+          progressBar.style.width = `${currentPercent}%`;
+          progressPercent.textContent = `${currentPercent}%`;
+
+          const eventPayload = {
+            summary: `[Thi ${ex.examType}] ${ex.courseName}`,
+            location: ex.room,
+            description: [
+              `📚 Môn thi: ${ex.courseName} (${ex.courseCode})`,
+              `🏷️ Loại thi: ${ex.examType}`,
+              `👥 Nhóm lớp: ${ex.group}`,
+              `⏱️ Thời lượng: ${ex.durationMinutes} phút`,
+              `📍 Phòng thi: ${ex.room} - ${ex.campus}`,
+              `🔄 Cập nhật từ MyBK: ${ex.updatedAt || 'Hệ thống'}`,
+              `\n⚠️ Lưu ý: Mang thẻ SV / CCCD và có mặt trước giờ thi 20 phút.`
+            ].join('\n'),
+            start: {
+              dateTime: `${ex.date}T${ex.startTime}:00+07:00`,
+              timeZone: 'Asia/Ho_Chi_Minh'
+            },
+            end: {
+              dateTime: `${ex.date}T${ex.endTime}:00+07:00`,
+              timeZone: 'Asia/Ho_Chi_Minh'
+            },
+            colorId: '11', // Màu đỏ cảnh báo thi
+            reminders: {
+              useDefault: false,
+              overrides: [
+                { method: 'popup', minutes: 24 * 60 }, // Trước 1 ngày
+                { method: 'popup', minutes: 120 }       // Trước 2 tiếng
+              ]
+            }
+          };
+
+          // Tìm xem môn này đã có sự kiện chưa (so khớp mã môn trong summary)
+          const matchedEvent = existingEvents.find(e => e.summary && e.summary.includes(`(${ex.courseCode})`));
+
+          if (matchedEvent) {
+            // Cập nhật (PUT) để tránh nhân đôi
+            await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${matchedEvent.id}`, {
+              method: 'PUT',
+              headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(eventPayload)
+            });
+          } else {
+            // Tạo mới (POST)
+            await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(eventPayload)
+            });
+          }
+          successCount++;
+        }
+
+        // Hoàn tất
+        progressBar.style.width = '100%';
+        progressPercent.textContent = '100%';
+        progressText.innerHTML = '<i class="fa-solid fa-check text-emerald-600"></i> Đã hoàn tất đồng bộ!';
+        setTimeout(() => { progressBox.classList.add('hidden'); }, 1500);
+
+        document.getElementById('success-modal-msg').innerHTML = `Đã đồng bộ thành công trực tiếp <strong>${successCount} môn thi</strong> vào Google Calendar (lịch <em>"${targetCalSummary}"</em>)! Mở điện thoại hoặc máy tính là bạn sẽ thấy ngay.`;
+        document.getElementById('success-modal').classList.remove('hidden');
+
+      } catch (err) {
+        alert('Có lỗi xảy ra khi đẩy lên Google Calendar: ' + err.message);
+        progressBox.classList.add('hidden');
+      }
+    }
+
+    // Tải file .ics dự phòng
+    function downloadExamICS() {
+      if (!parsedExams.length) return;
+      const icsLines = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//BKalendar Plus//MyBK Exam Schedule//VI',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH'
+      ];
+
+      parsedExams.forEach((exam, idx) => {
+        const dtStart = `${exam.date.replace(/-/g, '')}T${exam.startTime.replace(':', '')}00`;
+        const dtEnd = `${exam.date.replace(/-/g, '')}T${exam.endTime.replace(':', '')}00`;
+        const desc = `Môn thi: ${exam.courseName} (${exam.courseCode})\\nLoại thi: ${exam.examType}\\nPhòng: ${exam.room} - ${exam.campus}\\nNhóm: ${exam.group}\\nThời lượng: ${exam.durationMinutes} phút`;
+
+        icsLines.push(
+          'BEGIN:VEVENT',
+          `UID:mybk-exam-${exam.semester}-${exam.courseCode}-${exam.date}-${idx}@bkalendar`,
+          `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+          `DTSTART;TZID=Asia/Ho_Chi_Minh:${dtStart}`,
+          `DTEND;TZID=Asia/Ho_Chi_Minh:${dtEnd}`,
+          `SUMMARY:[Thi ${exam.examType}] ${exam.courseName}`,
+          `LOCATION:${exam.room}`,
+          `DESCRIPTION:${desc}`,
+          'STATUS:CONFIRMED',
+          'BEGIN:VALARM',
+          'TRIGGER:-P1D',
+          'ACTION:DISPLAY',
+          `DESCRIPTION:Ngày mai thi: ${exam.courseName}!`,
+          'END:VALARM',
+          'BEGIN:VALARM',
+          'TRIGGER:-PT2H',
+          'ACTION:DISPLAY',
+          `DESCRIPTION:Chuẩn bị thi: ${exam.courseName} (Phòng ${exam.room})!`,
+          'END:VALARM',
+          'END:VEVENT'
+        );
+      });
+
+      icsLines.push('END:VCALENDAR');
+      const blob = new Blob([icsLines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Lich_Thi_MyBK_${parsedExams[0]?.semester || 'HCMUT'}.ics`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    // ==========================================
+    // Parser Thời khóa biểu tuần MyBK (Chuẩn 12 trường dữ liệu MyBK)
+    // ==========================================
+    function parseMyBKTimetable(text) {
+      const list = [];
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+
+      // Tìm thông tin neo tuần học nếu có (vd: "Tuần: 43 , Thứ Hai, Ngày 19/10/2026")
+      let anchorWeek = 0;
+      let anchorMondayDate = null;
+      for (const line of lines) {
+        const weekMatch = line.match(/Tuần:\s*(\d+)\s*,\s*Thứ\s*Hai\s*,\s*Ngày\s*(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/i);
+        if (weekMatch) {
+          anchorWeek = parseInt(weekMatch[1], 10);
+          const [_, w, d, m, y] = weekMatch;
+          anchorMondayDate = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+          break;
+        }
+      }
+
+      // Tìm vị trí bắt đầu bảng (sau header 'TUẦN HỌC' hoặc 'Tìm kiếm:')
+      let startIndex = lines.findIndex(l => l.toUpperCase().includes('TUẦN HỌC') || l.includes('Tìm kiếm:'));
+      startIndex = (startIndex === -1) ? 0 : startIndex + 1;
+
+      // Gom toàn bộ token dữ liệu (xử lý cả dạng mỗi ô là 1 dòng hoặc cách nhau bằng Tab)
+      const tokens = [];
+      for (let i = startIndex; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.startsWith('Trình bày từ dòng') || line.startsWith('Version') || line.startsWith('Copyright') || line.startsWith('Tổng số tín chỉ')) {
+          break;
+        }
+        if (line.includes('\t')) {
+          tokens.push(...line.split('\t').map(t => t.trim()));
+        } else {
+          tokens.push(line);
+        }
+      }
+
+      let ptr = 0;
+      while (ptr < tokens.length) {
+        const token = tokens[ptr];
+
+        // Nhận diện mã học kỳ 5 chữ số (vd: 20261) và token tiếp theo là Mã Môn Học (vd: EE2003, SA0002)
+        if (/^\d{5}$/.test(token) && ptr + 11 < tokens.length && /^[A-Z]{2}\d{4}$/.test(tokens[ptr + 1])) {
+          const semester = token;
+          const courseCode = tokens[ptr + 1];
+          const courseName = tokens[ptr + 2];
+          const credits = parseInt(tokens[ptr + 3], 10) || 0;
+          const feeCredits = parseInt(tokens[ptr + 4], 10) || 0;
+          const group = tokens[ptr + 5];
+          const dayRaw = tokens[ptr + 6];
+          const periodRaw = tokens[ptr + 7];
+          const timeRaw = tokens[ptr + 8];
+          const roomRaw = tokens[ptr + 9];
+          const campusRaw = tokens[ptr + 10];
+          const weeksRaw = tokens[ptr + 11];
+
+          // Xử lý Thứ trong tuần
+          let dayOfWeek = 0;
+          let dayLabel = 'Chưa xếp lịch';
+          if (/^[2-7]$/.test(dayRaw)) {
+            dayOfWeek = parseInt(dayRaw, 10);
+            const daysMap = { 2: 'Thứ Hai', 3: 'Thứ Ba', 4: 'Thứ Tư', 5: 'Thứ Năm', 6: 'Thứ Sáu', 7: 'Thứ Bảy' };
+            dayLabel = daysMap[dayOfWeek] || `Thứ ${dayOfWeek}`;
+          } else if (dayRaw === 'CN' || dayRaw === '8') {
+            dayOfWeek = 8;
+            dayLabel = 'Chủ Nhật';
+          }
+
+          // Xử lý Giờ học (vd: "7:00 - 8:50" hoặc "13:00 - 17:50")
+          let startTime = '07:00';
+          let endTime = '08:50';
+          const timeMatch = timeRaw.match(/(\d{1,2}):(\d{2})\s*[-_–]\s*(\d{1,2}):(\d{2})/);
+          if (timeMatch) {
+            startTime = `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}`;
+            endTime = `${timeMatch[3].padStart(2, '0')}:${timeMatch[4]}`;
+          }
+
+          // Xử lý Cơ sở
+          const campus = campusRaw === 'BK-CS2' ? 'Cơ sở 2 (Dĩ An)' :
+                         campusRaw === 'BK-CS1' ? 'Cơ sở 1 (Lý Thường Kiệt)' : campusRaw;
+
+          // Xử lý danh sách các tuần học thực tế (tách từ chuỗi 35|--|37|38...)
+          const weekNumbers = [];
+          if (weeksRaw.includes('|')) {
+            weeksRaw.split('|').forEach(w => {
+              const cleanW = w.trim();
+              if (/^\d+$/.test(cleanW)) {
+                weekNumbers.push(parseInt(cleanW, 10));
+              }
+            });
+          }
+
+          list.push({
+            semester,
+            courseCode,
+            courseName,
+            credits,
+            feeCredits,
+            group,
+            dayOfWeek,
+            dayLabel,
+            periods: periodRaw,
+            timeRange: timeRaw,
+            startTime,
+            endTime,
+            room: roomRaw,
+            campus,
+            weeksRaw,
+            weekNumbers,
+            anchorWeek,
+            anchorMondayDate
+          });
+
+          ptr += 12; // Nhảy sang môn học tiếp theo
+          continue;
+        }
+        ptr++;
+      }
+
+      // Sắp xếp TKB: Các môn có lịch học xếp trước (theo Thứ và Giờ), các môn chưa xếp lịch xếp sau
+      list.sort((a, b) => {
+        if (a.dayOfWeek === 0 && b.dayOfWeek !== 0) return 1;
+        if (a.dayOfWeek !== 0 && b.dayOfWeek === 0) return -1;
+        if (a.dayOfWeek !== b.dayOfWeek) return a.dayOfWeek - b.dayOfWeek;
+        return a.startTime.localeCompare(b.startTime);
+      });
+
+      return list;
+    }
+
+    function renderTimetableResults(tt) {
+      const container = document.getElementById('timetable-cards-container');
+      const emptyState = document.getElementById('timetable-empty-state');
+      const actionsBar = document.getElementById('timetable-actions-bar');
+      const badge = document.getElementById('timetable-badge');
+      const statCount = document.getElementById('tt-stat-count');
+      const statSemester = document.getElementById('tt-stat-semester');
+
+      if (!tt || !tt.length) {
+        container.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        actionsBar.classList.add('hidden');
+        badge.classList.add('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      actionsBar.classList.remove('hidden');
+      badge.classList.remove('hidden');
+      badge.textContent = tt.length;
+      statCount.textContent = `Đã tìm thấy ${tt.length} môn học`;
+      statSemester.textContent = `Học kỳ ${tt[0]?.semester || '20261'}`;
+
+      container.innerHTML = tt.map(item => {
+        const hasSchedule = item.dayOfWeek > 0;
+        const thuBadgeClass = hasSchedule ? 'bg-cyan-100 text-cyan-800 border-cyan-300' : 'bg-slate-100 text-slate-600 border-slate-300';
+        
+        // Chuỗi tóm tắt tuần học (vd: 35-41, 43-50)
+        let weekSummary = item.weeksRaw;
+        if (item.weekNumbers && item.weekNumbers.length > 0) {
+          weekSummary = `Tuần: ${item.weekNumbers.join(', ')}`;
+        }
+
+        return `
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-start justify-between gap-3 mb-2">
+                <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full border ${thuBadgeClass}">
+                  ${item.dayLabel}
+                </span>
+                <div class="flex items-center gap-1.5">
+                  ${item.credits > 0 ? `<span class="text-[11px] font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">${item.credits} TC</span>` : ''}
+                  <span class="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                    ${item.courseCode}
+                  </span>
+                </div>
+              </div>
+
+              <h3 class="text-base font-bold text-slate-800 leading-snug mb-3">
+                ${item.courseName}
+              </h3>
+
+              <div class="space-y-1.5 text-xs text-slate-600 mb-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                ${hasSchedule ? `
+                  <div class="flex items-center gap-2">
+                    <i class="fa-regular fa-clock text-blue-600 w-4"></i>
+                    <span><strong>Tiết ${item.periods}</strong> (${item.startTime} - ${item.endTime})</span>
+                  </div>
+                ` : `
+                  <div class="flex items-center gap-2 text-slate-400">
+                    <i class="fa-regular fa-clock w-4"></i>
+                    <span>Không có tiết cố định</span>
+                  </div>
+                `}
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-location-dot text-rose-600 w-4"></i>
+                  <span>Phòng <strong>${item.room}</strong> - ${item.campus}</span>
+                </div>
+                <div class="flex items-center gap-2 text-slate-500">
+                  <i class="fa-solid fa-users text-slate-400 w-4"></i>
+                  <span>Nhóm: ${item.group || 'N/A'}</span>
+                </div>
+                <div class="flex items-start gap-2 text-slate-500">
+                  <i class="fa-solid fa-calendar-week text-slate-400 w-4 mt-0.5"></i>
+                  <span class="break-all">${weekSummary}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+              <span class="text-[11px] text-slate-400">
+                <i class="fa-solid fa-repeat"></i> ${hasSchedule ? 'Lặp lại theo tuần học' : 'Môn sinh hoạt / đồ án'}
+              </span>
+              <span class="${hasSchedule ? 'text-cyan-700' : 'text-slate-400'} font-medium flex items-center gap-1">
+                <i class="fa-solid ${hasSchedule ? 'fa-check' : 'fa-circle-info'}"></i> ${hasSchedule ? 'Sẵn sàng đồng bộ' : 'Chỉ xem'}
+              </span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ==========================================
+    // Đồng bộ trực tiếp TKB lên Google Calendar
+    // ==========================================
+    async function handleDirectTimetableGoogleSync() {
+      const scheduledCourses = parsedTimetables.filter(item => item.dayOfWeek > 0);
+      if (!scheduledCourses.length) {
+        alert('Không có môn học nào có lịch học cố định (Thứ, Tiết) để đồng bộ lên Google Calendar!');
+        return;
+      }
+
+      const clientId = localStorage.getItem(CLIENT_ID_STORAGE_KEY);
+      if (!clientId) {
+        openConfigModal();
+        return;
+      }
+
+      if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
+        alert('Thư viện Google Identity Services đang tải hoặc bị chặn. Vui lòng thử lại sau vài giây!');
+        return;
+      }
+
+      const tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar',
+        callback: async (tokenResponse) => {
+          if (tokenResponse.error) {
+            alert('Lỗi xác thực Google: ' + tokenResponse.error);
+            return;
+          }
+          await executeDirectTimetableCalendarPush(tokenResponse.access_token);
+        }
+      });
+
+      tokenClient.requestAccessToken({ prompt: 'consent' });
+    }
+
+    async function executeDirectTimetableCalendarPush(accessToken) {
+      const progressBox = document.getElementById('sync-tt-progress-box');
+      const progressText = document.getElementById('sync-tt-progress-text');
+      const progressBar = document.getElementById('sync-tt-progress-bar');
+      const progressPercent = document.getElementById('sync-tt-progress-percent');
+
+      progressBox.classList.remove('hidden');
+      progressText.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-cyan-600"></i> Đang tìm hoặc tạo Lịch TKB trên Google Calendar...';
+      progressBar.style.width = '10%';
+      progressPercent.textContent = '10%';
+
+      try {
+        const semester = parsedTimetables[0]?.semester || '20261';
+        const targetCalSummary = `Thời Khóa Biểu HCMUT - HK ${semester}`;
+        let calendarId = 'primary';
+
+        // 1. Kiểm tra hoặc tạo calendar riêng
+        const listRes = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+
+        if (listRes.ok) {
+          const listData = await listRes.json();
+          const existingCal = listData.items?.find(c => c.summary === targetCalSummary);
+          if (existingCal) {
+            calendarId = existingCal.id;
+          } else {
+            const createCalRes = await fetch('https://www.googleapis.com/calendar/v3/calendars', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                summary: targetCalSummary,
+                description: `Thời khóa biểu học kỳ ${semester} HCMUT được đồng bộ tự động từ BKalendar Plus`,
+                timeZone: 'Asia/Ho_Chi_Minh'
+              })
+            });
+            if (createCalRes.ok) {
+              const newCal = await createCalRes.json();
+              calendarId = newCal.id;
+            }
+          }
+        }
+
+        // Lọc các môn có lịch học cụ thể
+        const schedulableCourses = parsedTimetables.filter(item => item.dayOfWeek > 0);
+
+        // Tính ngày diễn ra buổi học
+        function calculateClassDate(anchorMonday, anchorWk, targetWk, dayOfWeek) {
+          const monday = new Date(anchorMonday);
+          const diffWeeks = targetWk - anchorWk;
+          monday.setDate(monday.getDate() + diffWeeks * 7 + (dayOfWeek - 2));
+          return monday.toISOString().split('T')[0];
+        }
+
+        // Bảng màu đa sắc tự động phân biệt các môn giống BKalendar gốc:
+        // 2=Xanh lá (Sage), 6=Cam (Tangerine), 10=Xanh lục đậm, 7=Xanh da trời, 5=Vàng, 4=Hồng, 9=Xanh tím, 3=Tím
+        const COURSE_PALETTE = ['2', '6', '10', '7', '5', '4', '9', '3', '1'];
+        const uniqueCodes = [...new Set(schedulableCourses.map(c => c.courseCode))];
+        const colorMap = {};
+        uniqueCodes.forEach((code, idx) => {
+          colorMap[code] = COURSE_PALETTE[idx % COURSE_PALETTE.length];
+        });
+
+        let successCount = 0;
+        for (let i = 0; i < schedulableCourses.length; i++) {
+          const item = schedulableCourses[i];
+          const currentPercent = Math.round(((i + 1) / schedulableCourses.length) * 80) + 15;
+          progressText.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-cyan-600"></i> Đang đồng bộ (${i + 1}/${schedulableCourses.length}): <strong>${item.courseCode} - ${item.courseName}</strong>...`;
+          progressBar.style.width = `${currentPercent}%`;
+          progressPercent.textContent = `${currentPercent}%`;
+
+          const eventColor = colorMap[item.courseCode] || '2';
+
+          // Nếu có thông tin neo tuần học và danh sách tuần học thực tế: Đẩy từng buổi học chính xác
+          if (item.anchorWeek > 0 && item.anchorMondayDate && item.weekNumbers && item.weekNumbers.length > 0) {
+            for (const wk of item.weekNumbers) {
+              const classDate = calculateClassDate(item.anchorMondayDate, item.anchorWeek, wk, item.dayOfWeek);
+              const eventPayload = {
+                summary: item.courseName, // Gọn gàng: Chỉ tên môn học
+                location: item.room,      // Gọn gàng: Chỉ mã phòng
+                description: [
+                  `Môn học: ${item.courseName} (${item.courseCode})`,
+                  `Tiết: ${item.periods} (${item.startTime} - ${item.endTime})`,
+                  `Nhóm: ${item.group}`,
+                  `Địa điểm: Phòng ${item.room} - ${item.campus}`,
+                  `Tuần học: ${wk}`
+                ].join('\n'),
+                start: {
+                  dateTime: `${classDate}T${item.startTime}:00+07:00`,
+                  timeZone: 'Asia/Ho_Chi_Minh'
+                },
+                end: {
+                  dateTime: `${classDate}T${item.endTime}:00+07:00`,
+                  timeZone: 'Asia/Ho_Chi_Minh'
+                },
+                colorId: eventColor,
+                reminders: {
+                  useDefault: false,
+                  overrides: [{ method: 'popup', minutes: 15 }]
+                }
+              };
+
+              await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${accessToken}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(eventPayload)
+              });
+            }
+          } else {
+            // Fallback lặp lại hàng tuần
+            const now = new Date();
+            const currentDay = now.getDay() === 0 ? 8 : now.getDay() + 1;
+            let diff = item.dayOfWeek - currentDay;
+            if (diff < 0) diff += 7;
+            const startDateObj = new Date(now);
+            startDateObj.setDate(now.getDate() + diff);
+            const startDate = startDateObj.toISOString().split('T')[0];
+
+            const eventPayload = {
+              summary: item.courseName,
+              location: item.room,
+              description: `Môn: ${item.courseName} (${item.courseCode})\nTiết: ${item.periods} (${item.startTime} - ${item.endTime})\nPhòng: ${item.room} - ${item.campus}`,
+              start: { dateTime: `${startDate}T${item.startTime}:00+07:00`, timeZone: 'Asia/Ho_Chi_Minh' },
+              end: { dateTime: `${startDate}T${item.endTime}:00+07:00`, timeZone: 'Asia/Ho_Chi_Minh' },
+              recurrence: ['RRULE:FREQ=WEEKLY;COUNT=15'],
+              colorId: eventColor
+            };
+
+            await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify(eventPayload)
+            });
+          }
+
+          successCount++;
+        }
+
+        progressBar.style.width = '100%';
+        progressPercent.textContent = '100%';
+        progressText.innerHTML = '<i class="fa-solid fa-check text-emerald-600"></i> Đã hoàn tất đồng bộ TKB!';
+        setTimeout(() => { progressBox.classList.add('hidden'); }, 1500);
+
+        document.getElementById('success-modal-msg').innerHTML = `Đã đồng bộ thành công trực tiếp <strong>${successCount} môn học</strong> vào Google Calendar (lịch <em>"${targetCalSummary}"</em>) với giao diện gọn đẹp!`;
+        document.getElementById('success-modal').classList.remove('hidden');
+
+      } catch (err) {
+        alert('Có lỗi xảy ra khi đẩy TKB lên Google Calendar: ' + err.message);
+        progressBox.classList.add('hidden');
+      }
+    }
+
+    // Tải file .ics cho Thời khóa biểu
+    function downloadTimetableICS() {
+      const schedulableCourses = parsedTimetables.filter(item => item.dayOfWeek > 0);
+      if (!schedulableCourses.length) {
+        alert('Không có môn học nào có lịch học cố định để xuất file .ics!');
+        return;
+      }
+
+      const icsLines = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//BKalendar Plus//MyBK Timetable//VI',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+        'X-WR-CALNAME:Thời Khóa Biểu HCMUT'
+      ];
+
+      function calculateClassDate(anchorMonday, anchorWk, targetWk, dayOfWeek) {
+        const monday = new Date(anchorMonday);
+        const diffWeeks = targetWk - anchorWk;
+        monday.setDate(monday.getDate() + diffWeeks * 7 + (dayOfWeek - 2));
+        return monday.toISOString().split('T')[0];
+      }
+
+      schedulableCourses.forEach((item, idx) => {
+        if (item.anchorWeek > 0 && item.anchorMondayDate && item.weekNumbers && item.weekNumbers.length > 0) {
+          item.weekNumbers.forEach((wk, wIdx) => {
+            const classDate = calculateClassDate(item.anchorMondayDate, item.anchorWeek, wk, item.dayOfWeek);
+            const dtStart = `${classDate.replace(/-/g, '')}T${item.startTime.replace(':', '')}00`;
+            const dtEnd = `${classDate.replace(/-/g, '')}T${item.endTime.replace(':', '')}00`;
+
+            icsLines.push(
+              'BEGIN:VEVENT',
+              `UID:mybk-tt-${item.courseCode}-w${wk}-${idx}-${wIdx}@bkalendar`,
+              `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+              `DTSTART;TZID=Asia/Ho_Chi_Minh:${dtStart}`,
+              `DTEND;TZID=Asia/Ho_Chi_Minh:${dtEnd}`,
+              `SUMMARY:${item.courseName}`,
+              `LOCATION:${item.room}`,
+              `DESCRIPTION:Môn: ${item.courseName} (${item.courseCode})\\nTiết: ${item.periods}\\nPhòng: ${item.room} - ${item.campus}\\nTuần: ${wk}`,
+              'STATUS:CONFIRMED',
+              'BEGIN:VALARM',
+              'TRIGGER:-PT15M',
+              'ACTION:DISPLAY',
+              `DESCRIPTION:Chuẩn bị đi học: ${item.courseName}!`,
+              'END:VALARM',
+              'END:VEVENT'
+            );
+          });
+        }
+      });
+
+      icsLines.push('END:VCALENDAR');
+      const blob = new Blob([icsLines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Thoi_Khoa_Bieu_HCMUT_${parsedTimetables[0]?.semester || '20261'}.ics`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
