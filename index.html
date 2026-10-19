@@ -65,11 +65,8 @@
           </p>
         </div>
         <div class="flex gap-2">
-          <button id="btn-load-sample" onclick="loadSampleData()" class="px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition border border-blue-200 flex items-center gap-1.5">
-            <i class="fa-solid fa-wand-magic-sparkles"></i> Dán 4 môn thi mẫu của bạn
-          </button>
           <button onclick="clearInput()" class="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition flex items-center gap-1.5">
-            <i class="fa-solid fa-trash-can"></i> Xóa
+            <i class="fa-solid fa-trash-can"></i> Xóa ô nhập
           </button>
         </div>
       </div>
@@ -126,6 +123,45 @@
         </div>
       </div>
 
+      <!-- Section: Preview & Color Customization for Exams -->
+      <div id="exam-preview-box" class="hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div>
+            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-palette text-blue-600"></i>
+              <span>Xem Trước Lịch Thi & Tùy Chỉnh Màu Sắc</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Sự kiện khi đưa lên Google Calendar sẽ có màu sắc và thông tin như dưới đây:</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-medium">
+              <button id="exam-mode-palette" onclick="setExamColorMode('palette')" class="px-3 py-1 rounded-lg text-slate-500 hover:text-slate-800 transition">💅 Đa sắc</button>
+              <button id="exam-mode-tomato" onclick="setExamColorMode('tomato')" class="px-3 py-1 rounded-lg bg-white shadow text-rose-700 font-bold transition">🍅 Báo động đỏ (Tomato)</button>
+            </div>
+            <button onclick="shuffleExamColors()" class="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition flex items-center gap-1.5" title="Đổi màu ngẫu nhiên khác">
+              <i class="fa-solid fa-dice text-rose-500"></i> Đổi màu khác
+            </button>
+          </div>
+        </div>
+
+        <!-- Custom exam color picker chips -->
+        <div>
+          <div class="text-xs font-semibold text-slate-600 mb-2 flex items-center gap-1.5">
+            <i class="fa-regular fa-hand-pointer text-blue-500"></i> Nhấp vào chấm màu để đổi màu cho từng môn thi:
+          </div>
+          <div id="exam-course-chips" class="flex flex-wrap gap-2">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Visual Exam Timeline Preview -->
+        <div class="border border-slate-200 rounded-xl bg-slate-50/50 p-3">
+          <div id="exam-preview-timeline" class="space-y-2">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+
       <!-- Exam Cards Container -->
       <div id="exam-cards-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Rendered by JS -->
@@ -135,7 +171,7 @@
       <div id="exam-empty-state" class="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300">
         <i class="fa-solid fa-calendar-xmark text-4xl text-slate-300 mb-3"></i>
         <p class="text-slate-600 font-medium text-sm">Chưa có dữ liệu lịch thi nào</p>
-        <p class="text-slate-400 text-xs mt-1">Hãy dán nội dung từ MyBK hoặc bấm "Dán 4 môn thi mẫu của bạn" ở trên để kiểm tra!</p>
+        <p class="text-slate-400 text-xs mt-1">Hãy sao chép lịch thi từ MyBK và dán vào ô bên trên để bắt đầu.</p>
       </div>
 
     </div>
@@ -177,6 +213,45 @@
         </div>
       </div>
 
+      <!-- Section: Preview & Color Customization (BKalendar Style) -->
+      <div id="timetable-preview-box" class="hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div>
+            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-palette text-cyan-600"></i>
+              <span>Xem Trước TKB & Tùy Chỉnh Màu Sắc</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Thời khóa biểu hiển thị trên Google Calendar sẽ trông giống thế này:</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-medium">
+              <button id="tt-mode-palette" onclick="setTimetableColorMode('palette')" class="px-3 py-1 rounded-lg bg-white shadow text-slate-800 font-bold transition">💅 Bảy sắc cầu vồng</button>
+              <button id="tt-mode-mono" onclick="setTimetableColorMode('mono')" class="px-3 py-1 rounded-lg text-slate-500 hover:text-slate-800 transition">🗿 Tối giản</button>
+            </div>
+            <button onclick="shuffleTimetableColors()" class="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition flex items-center gap-1.5" title="Đổi màu ngẫu nhiên khác">
+              <i class="fa-solid fa-dice text-rose-500"></i> Đổi màu khác
+            </button>
+          </div>
+        </div>
+
+        <!-- Custom course color picker chips -->
+        <div>
+          <div class="text-xs font-semibold text-slate-600 mb-2 flex items-center gap-1.5">
+            <i class="fa-regular fa-hand-pointer text-blue-500"></i> Nhấp vào chấm màu để đổi màu cho từng môn theo sở thích:
+          </div>
+          <div id="tt-course-chips" class="flex flex-wrap gap-2">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Visual Timetable Grid (GapiPreview của BKalendar) -->
+        <div class="border border-slate-200 rounded-xl bg-slate-50/50 p-3 overflow-x-auto">
+          <div id="timetable-preview-grid-wrapper" class="min-w-[650px]">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+
       <div id="timetable-cards-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Rendered by JS -->
       </div>
@@ -184,11 +259,38 @@
       <div id="timetable-empty-state" class="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300">
         <i class="fa-solid fa-clock text-4xl text-slate-300 mb-3"></i>
         <p class="text-slate-600 font-medium text-sm">Chưa có dữ liệu thời khóa biểu</p>
-        <p class="text-slate-400 text-xs mt-1">Dán thời khóa biểu từ trang Thời khóa biểu sinh viên MyBK để hiển thị hoặc bấm nút dán mẫu.</p>
+        <p class="text-slate-400 text-xs mt-1">Hãy sao chép thời khóa biểu từ MyBK và dán vào ô bên trên để bắt đầu.</p>
       </div>
     </div>
 
   </main>
+
+  <!-- Color Picker Modal/Popover -->
+  <div id="color-picker-popover" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="closeColorPicker()">
+    <div class="bg-white rounded-2xl shadow-2xl p-5 border border-slate-200 max-w-sm w-full" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+        <div>
+          <h4 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-palette text-blue-600"></i> Bảng Màu Google Calendar
+          </h4>
+          <p class="text-xs text-slate-500 mt-0.5" id="color-picker-subtitle">Chọn màu sắc hiển thị</p>
+        </div>
+        <button onclick="closeColorPicker()" class="text-slate-400 hover:text-slate-600 p-1">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-4 gap-2.5 my-3" id="color-picker-grid">
+        <!-- Rendered by JS: 11 swatches -->
+      </div>
+      
+      <div class="pt-3 border-t border-slate-100 text-right">
+        <button onclick="closeColorPicker()" class="px-4 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+          Đóng
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Google OAuth Client ID Configuration Modal -->
   <div id="config-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -292,23 +394,55 @@
       return GLOBAL_GOOGLE_CLIENT_ID || localStorage.getItem(CLIENT_ID_STORAGE_KEY) || '';
     }
 
-    // Mẫu dữ liệu Lịch thi thực tế từ MyBK
-    const SAMPLE_EXAM_DATA = `Học kỳ\tMôn học\tNhóm lớp\tNgày thi\tLoại thi\tCơ sở\tMã phòng\tThứ\tGiờ bắt đầu\tTổng số phút\tCập nhật cuối cùng vào lúc
-20261\tEE2081 - Ngôn ngữ lập trình\tL09_A_Ktr\t2026-10-14\tGK\tBK-CS2\tH6-208\t4\t07g00\t60\t2026-09-21 14:09:00
-20261\tEE2021 - Cơ sở Điện tử Công suất\tL04_B_Ktr\t2026-10-17\tGK\tBK-CS2\tH6-213\t7\t07g00\t50\t2026-09-21 14:09:00
-20261\tEE2019 - Cơ sở Điều khiển Tự động\tL06_B_Ktr\t2026-10-12\tGK\tBK-CS2\tH6-113\t2\t09g00\t60\t2026-09-21 14:09:00
-20261\tEE2003 - Trường điện từ\tL01_B_Ktr\t2026-10-12\tGK\tBK-CS2\tH6-313\t2\t15g00\t50\t2026-09-21 14:09:00`;
+    // ==========================================
+    // BẢNG MÀU CHUẨN GOOGLE CALENDAR (11 MÀU)
+    // ==========================================
+    const GOOGLE_COLORS = {
+      '1': { name: 'Lavender (Oải hương)', bg: '#7986cb', text: '#ffffff' },
+      '2': { name: 'Sage (Cây xô thơm)', bg: '#33b679', text: '#ffffff' },
+      '3': { name: 'Grape (Nho tím)', bg: '#8e24aa', text: '#ffffff' },
+      '4': { name: 'Flamingo (Hồng hạc)', bg: '#e67c73', text: '#ffffff' },
+      '5': { name: 'Banana (Chuối vàng)', bg: '#f6bf26', text: '#1f2937' },
+      '6': { name: 'Tangerine (Quýt cam)', bg: '#f4511e', text: '#ffffff' },
+      '7': { name: 'Peacock (Khổng tước)', bg: '#039be5', text: '#ffffff' },
+      '8': { name: 'Graphite (Than chì)', bg: '#616161', text: '#ffffff' },
+      '9': { name: 'Blueberry (Việt quất)', bg: '#3f51b5', text: '#ffffff' },
+      '10': { name: 'Basil (Húng quế)', bg: '#0b8043', text: '#ffffff' },
+      '11': { name: 'Tomato (Cà chua đỏ)', bg: '#d50000', text: '#ffffff' }
+    };
 
-    // Mẫu dữ liệu Thời khóa biểu MyBK chuẩn
-    const SAMPLE_TIMETABLE_DATA = `Mã MH\tTên môn học\tNhóm-Tổ\tSố TC\tMã lớp\tThứ\tTiết\tGiờ học\tPhòng\tCơ sở\tTuần học
-EE2081\tNgôn ngữ lập trình\tL09\t3\tEE2081_L09\t4\t7 - 9\t13:00 - 15:50\tH6-208\tBK-CS2\t--|--|03|04|05|06|07|08|--|10|11|12|13|14|15|16|17|--|--
-EE2021\tCơ sở Điện tử Công suất\tL04\t3\tEE2021_L04\t7\t2 - 4\t07:00 - 09:50\tH6-213\tBK-CS2\t--|--|03|04|05|06|07|08|--|10|11|12|13|14|15|16|17|--|--
-EE2019\tCơ sở Điều khiển Tự động\tL06\t3\tEE2019_L06\t2\t4 - 6\t09:00 - 11:50\tH6-113\tBK-CS2\t--|--|03|04|05|06|07|08|--|10|11|12|13|14|15|16|17|--|--
-EE2003\tTrường điện từ\tL01\t3\tEE2003_L01\t2\t10 - 12\t15:00 - 17:50\tH6-313\tBK-CS2\t--|--|03|04|05|06|07|08|--|10|11|12|13|14|15|16|17|--|--`;
+    const BASE_PALETTE = ['2', '6', '10', '7', '5', '4', '9', '3', '1'];
+    let ttPalette = [...BASE_PALETTE];
+    let examPalette = [...BASE_PALETTE];
+
+    let ttColorMode = 'palette';  // 'palette' | 'mono'
+    let ttCourseColors = {};      // { [courseCode]: colorId }
+
+    let examColorMode = 'tomato'; // 'tomato' | 'palette'
+    let examCourseColors = {};    // { [courseCode]: colorId }
+
+    let activeColorPicker = null; // { type: 'tt'|'exam', courseCode, courseName }
+
+
 
     // Khởi tạo trạng thái
     window.addEventListener('DOMContentLoaded', () => {
       updateNavStatus();
+
+      // Tự động nhận diện dữ liệu chuyển từ Tampermonkey nếu có
+      if (window.location.hash && window.location.hash.startsWith('#data=')) {
+        try {
+          const rawData = decodeURIComponent(window.location.hash.slice(6));
+          if (rawData) {
+            document.getElementById('raw-input').value = rawData;
+            parseContent();
+            // Xóa hash trên thanh địa chỉ để URL sạch đẹp
+            window.history.replaceState(null, null, window.location.pathname);
+          }
+        } catch (e) {
+          console.error('Không thể đọc dữ liệu từ Hash:', e);
+        }
+      }
     });
 
     function updateNavStatus() {
@@ -352,7 +486,6 @@ EE2003\tTrường điện từ\tL01\t3\tEE2003_L01\t2\t10 - 12\t15:00 - 17:50\tH
       const examSec = document.getElementById('exam-results-section');
       const ttSec = document.getElementById('timetable-results-section');
       const inputDesc = document.getElementById('input-desc');
-      const btnSample = document.getElementById('btn-load-sample');
 
       if (tab === 'exam') {
         examBtn.className = 'tab-btn px-5 py-2.5 font-semibold text-blue-900 border-b-2 border-blue-900 flex items-center gap-2 transition';
@@ -360,24 +493,13 @@ EE2003\tTrường điện từ\tL01\t3\tEE2003_L01\t2\t10 - 12\t15:00 - 17:50\tH
         examSec.classList.remove('hidden');
         ttSec.classList.add('hidden');
         inputDesc.innerHTML = 'Vào <span class="font-medium text-slate-700">MyBK &gt; Thông tin sinh viên &gt; Lịch thi</span>, bôi đen (Ctrl+A) và dán (Ctrl+V) vào ô dưới đây.';
-        btnSample.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Dán 4 môn thi mẫu của bạn';
       } else {
         ttBtn.className = 'tab-btn px-5 py-2.5 font-semibold text-blue-900 border-b-2 border-blue-900 flex items-center gap-2 transition';
         examBtn.className = 'tab-btn px-5 py-2.5 font-semibold text-slate-500 hover:text-slate-800 border-b-2 border-transparent flex items-center gap-2 transition';
         ttSec.classList.remove('hidden');
         examSec.classList.add('hidden');
         inputDesc.innerHTML = 'Vào <span class="font-medium text-slate-700">MyBK &gt; Thông tin sinh viên &gt; Thời khóa biểu (hoặc ĐKMH)</span>, bôi đen (Ctrl+A) và dán (Ctrl+V) vào ô dưới đây.';
-        btnSample.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Dán mẫu TKB tuần (4 môn)';
       }
-    }
-
-    function loadSampleData() {
-      if (currentTab === 'exam') {
-        document.getElementById('raw-input').value = SAMPLE_EXAM_DATA;
-      } else {
-        document.getElementById('raw-input').value = SAMPLE_TIMETABLE_DATA;
-      }
-      parseContent();
     }
 
     function clearInput() {
@@ -509,6 +631,361 @@ EE2003\tTrường điện từ\tL01\t3\tEE2003_L01\t2\t10 - 12\t15:00 - 17:50\tH
       return exams;
     }
 
+    // ==========================================
+    // QUẢN LÝ MÀU SẮC & XEM TRƯỚC (BKalendar Style)
+    // ==========================================
+    function setTimetableColorMode(mode) {
+      ttColorMode = mode;
+      const btnPalette = document.getElementById('tt-mode-palette');
+      const btnMono = document.getElementById('tt-mode-mono');
+      if (mode === 'palette') {
+        btnPalette.className = 'px-3 py-1 rounded-lg bg-white shadow text-slate-800 font-bold transition';
+        btnMono.className = 'px-3 py-1 rounded-lg text-slate-500 hover:text-slate-800 transition';
+      } else {
+        btnMono.className = 'px-3 py-1 rounded-lg bg-white shadow text-slate-800 font-bold transition';
+        btnPalette.className = 'px-3 py-1 rounded-lg text-slate-500 hover:text-slate-800 transition';
+      }
+      renderTimetablePreview();
+    }
+
+    function shuffleTimetableColors() {
+      ttColorMode = 'palette';
+      const btnPalette = document.getElementById('tt-mode-palette');
+      const btnMono = document.getElementById('tt-mode-mono');
+      if (btnPalette && btnMono) {
+        btnPalette.className = 'px-3 py-1 rounded-lg bg-white shadow text-slate-800 font-bold transition';
+        btnMono.className = 'px-3 py-1 rounded-lg text-slate-500 hover:text-slate-800 transition';
+      }
+
+      for (let i = ttPalette.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [ttPalette[i], ttPalette[j]] = [ttPalette[j], ttPalette[i]];
+      }
+      const uniqueCodes = [...new Set(parsedTimetables.map(c => c.courseCode))];
+      uniqueCodes.forEach((code, idx) => {
+        ttCourseColors[code] = ttPalette[idx % ttPalette.length];
+      });
+      renderTimetablePreview();
+    }
+
+    function setExamColorMode(mode) {
+      examColorMode = mode;
+      const btnTomato = document.getElementById('exam-mode-tomato');
+      const btnPalette = document.getElementById('exam-mode-palette');
+      if (mode === 'tomato') {
+        btnTomato.className = 'px-3 py-1 rounded-lg bg-white shadow text-rose-700 font-bold transition';
+        btnPalette.className = 'px-3 py-1 rounded-lg text-slate-500 hover:text-slate-800 transition';
+      } else {
+        btnPalette.className = 'px-3 py-1 rounded-lg bg-white shadow text-slate-800 font-bold transition';
+        btnTomato.className = 'px-3 py-1 rounded-lg text-slate-500 hover:text-slate-800 transition';
+      }
+      renderExamPreview();
+    }
+
+    function shuffleExamColors() {
+      examColorMode = 'palette';
+      const btnTomato = document.getElementById('exam-mode-tomato');
+      const btnPalette = document.getElementById('exam-mode-palette');
+      if (btnPalette && btnTomato) {
+        btnPalette.className = 'px-3 py-1 rounded-lg bg-white shadow text-slate-800 font-bold transition';
+        btnTomato.className = 'px-3 py-1 rounded-lg text-slate-500 hover:text-slate-800 transition';
+      }
+
+      for (let i = examPalette.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [examPalette[i], examPalette[j]] = [examPalette[j], examPalette[i]];
+      }
+      const uniqueCodes = [...new Set(parsedExams.map(c => c.courseCode))];
+      uniqueCodes.forEach((code, idx) => {
+        examCourseColors[code] = examPalette[idx % examPalette.length];
+      });
+      renderExamPreview();
+    }
+
+    function openColorPicker(type, courseCode, courseName) {
+      activeColorPicker = { type, courseCode, courseName };
+      const modal = document.getElementById('color-picker-popover');
+      const subtitle = document.getElementById('color-picker-subtitle');
+      const grid = document.getElementById('color-picker-grid');
+
+      subtitle.textContent = `Chọn màu cho môn: ${courseCode} - ${courseName}`;
+
+      const currentColor = type === 'tt' 
+        ? (ttCourseColors[courseCode] || (ttColorMode === 'mono' ? '8' : '2'))
+        : (examCourseColors[courseCode] || (examColorMode === 'tomato' ? '11' : '11'));
+
+      grid.innerHTML = Object.entries(GOOGLE_COLORS).map(([id, col]) => {
+        const isSelected = id === currentColor;
+        return `
+          <button onclick="selectColor('${id}')" class="group flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-slate-50 border ${isSelected ? 'border-blue-500 ring-2 ring-blue-200' : 'border-slate-200'} transition text-center" title="${col.name}">
+            <div class="w-8 h-8 rounded-full shadow-sm flex items-center justify-center transition transform group-hover:scale-110" style="background-color: ${col.bg}; color: ${col.text};">
+              ${isSelected ? '<i class="fa-solid fa-check text-xs"></i>' : ''}
+            </div>
+            <span class="text-[10px] font-medium text-slate-600 truncate w-full">${col.name.split(' ')[0]}</span>
+          </button>
+        `;
+      }).join('');
+
+      modal.classList.remove('hidden');
+    }
+
+    function selectColor(colorId) {
+      if (!activeColorPicker) return;
+      const { type, courseCode } = activeColorPicker;
+      if (type === 'tt') {
+        ttCourseColors[courseCode] = colorId;
+        ttColorMode = 'palette';
+        const btnPalette = document.getElementById('tt-mode-palette');
+        const btnMono = document.getElementById('tt-mode-mono');
+        if (btnPalette && btnMono) {
+          btnPalette.className = 'px-3 py-1 rounded-lg bg-white shadow text-slate-800 font-bold transition';
+          btnMono.className = 'px-3 py-1 rounded-lg text-slate-500 hover:text-slate-800 transition';
+        }
+        renderTimetablePreview();
+      } else {
+        examCourseColors[courseCode] = colorId;
+        examColorMode = 'palette';
+        const btnTomato = document.getElementById('exam-mode-tomato');
+        const btnPalette = document.getElementById('exam-mode-palette');
+        if (btnPalette && btnTomato) {
+          btnPalette.className = 'px-3 py-1 rounded-lg bg-white shadow text-slate-800 font-bold transition';
+          btnTomato.className = 'px-3 py-1 rounded-lg text-slate-500 hover:text-slate-800 transition';
+        }
+        renderExamPreview();
+      }
+      closeColorPicker();
+    }
+
+    function closeColorPicker() {
+      const modal = document.getElementById('color-picker-popover');
+      if (modal) modal.classList.add('hidden');
+      activeColorPicker = null;
+    }
+
+    function renderTimetablePreview() {
+      const previewBox = document.getElementById('timetable-preview-box');
+      const chipsContainer = document.getElementById('tt-course-chips');
+      const gridWrapper = document.getElementById('timetable-preview-grid-wrapper');
+
+      if (!parsedTimetables.length) {
+        if (previewBox) previewBox.classList.add('hidden');
+        return;
+      }
+      if (previewBox) previewBox.classList.remove('hidden');
+
+      const uniqueCourses = [];
+      const seen = new Set();
+      parsedTimetables.forEach(c => {
+        if (!seen.has(c.courseCode)) {
+          seen.add(c.courseCode);
+          uniqueCourses.push(c);
+        }
+      });
+
+      uniqueCourses.forEach((c, idx) => {
+        if (!ttCourseColors[c.courseCode]) {
+          ttCourseColors[c.courseCode] = ttPalette[idx % ttPalette.length];
+        }
+      });
+
+      if (chipsContainer) {
+        chipsContainer.innerHTML = uniqueCourses.map(c => {
+          const colorId = ttColorMode === 'mono' ? '8' : (ttCourseColors[c.courseCode] || '2');
+          const col = GOOGLE_COLORS[colorId] || GOOGLE_COLORS['2'];
+          const escapedName = (c.courseName || '').replace(/'/g, "\\'");
+          return `
+            <button onclick="openColorPicker('tt', '${c.courseCode}', '${escapedName}')" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm text-xs font-medium text-slate-700 transition">
+              <span class="w-3.5 h-3.5 rounded-full shadow-inner inline-block flex-shrink-0" style="background-color: ${col.bg};"></span>
+              <span class="font-bold text-slate-800">${c.courseCode}</span>
+              <span class="truncate max-w-[140px] text-slate-500">${c.courseName}</span>
+              <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+            </button>
+          `;
+        }).join('');
+      }
+
+      const schedulable = parsedTimetables.filter(c => c.dayOfWeek >= 2 && c.dayOfWeek <= 8);
+      if (!schedulable.length) {
+        if (gridWrapper) {
+          gridWrapper.innerHTML = `
+            <div class="text-center py-6 text-xs text-slate-500">
+              Các môn học này không có thời gian cụ thể cố định trong tuần.
+            </div>
+          `;
+        }
+        return;
+      }
+
+      let maxDay = 7;
+      schedulable.forEach(c => {
+        if (c.dayOfWeek > maxDay) maxDay = c.dayOfWeek;
+      });
+      const daysCount = maxDay - 1;
+      const daysLabels = {
+        2: 'Thứ Hai', 3: 'Thứ Ba', 4: 'Thứ Tư', 5: 'Thứ Năm', 6: 'Thứ Sáu', 7: 'Thứ Bảy', 8: 'Chủ Nhật'
+      };
+
+      let minHour = 6;
+      let maxHour = 18;
+      schedulable.forEach(c => {
+        const sh = parseInt(c.startTime?.split(':')[0], 10) || 7;
+        const eh = parseInt(c.endTime?.split(':')[0], 10) || 10;
+        if (sh < minHour) minHour = sh;
+        if (eh + 1 > maxHour) maxHour = eh + 1;
+      });
+      const totalHours = maxHour - minHour;
+
+      let gridHtml = `
+        <div class="grid gap-x-1 relative" style="grid-template-columns: 50px repeat(${daysCount}, minmax(110px, 1fr)); grid-template-rows: 32px repeat(${totalHours}, 36px);">
+          <!-- Header hàng Thứ -->
+          <div class="sticky top-0 z-10 bg-slate-100/90 backdrop-blur-sm border-b border-slate-200 text-slate-400 font-bold text-[11px] flex items-center justify-center rounded-tl-lg" style="grid-column: 1; grid-row: 1;">
+            Giờ
+          </div>
+      `;
+
+      for (let d = 2; d <= maxDay; d++) {
+        const colIdx = d - 2 + 2;
+        gridHtml += `
+          <div class="sticky top-0 z-10 bg-slate-100/90 backdrop-blur-sm border-b border-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center py-1.5" style="grid-column: ${colIdx}; grid-row: 1;">
+            ${daysLabels[d]}
+          </div>
+        `;
+      }
+
+      for (let h = 0; h < totalHours; h++) {
+        const currentH = minHour + h;
+        const rowIdx = h + 2;
+        const timeStr = `${String(currentH).padStart(2, '0')}:00`;
+        const isOdd = h % 2 === 1;
+
+        gridHtml += `
+          <div class="border-b-[1.5px] border-dotted border-slate-200 text-[10px] font-mono text-slate-400 flex items-start justify-center pt-1" style="grid-column: 1; grid-row: ${rowIdx};">
+            ${timeStr}
+          </div>
+          <div class="border-b-[1.5px] border-dotted border-slate-200 ${isOdd ? 'bg-transparent' : 'bg-slate-100/50'} -mx-1" style="grid-column: 2 / span ${daysCount}; grid-row: ${rowIdx}; pointer-events: none;"></div>
+        `;
+      }
+
+      schedulable.forEach(item => {
+        const colIdx = (item.dayOfWeek - 2) + 2;
+        const [shStr, smStr] = (item.startTime || '07:00').split(':');
+        const [ehStr, emStr] = (item.endTime || '09:50').split(':');
+        const sh = parseInt(shStr, 10);
+        const sm = parseInt(smStr, 10) || 0;
+        const eh = parseInt(ehStr, 10);
+        const em = parseInt(emStr, 10) || 0;
+
+        const startHourFraction = sh + sm / 60;
+        const endHourFraction = eh + em / 60;
+
+        const startRow = Math.max(2, Math.floor(startHourFraction - minHour) + 2);
+        const endRow = Math.max(startRow + 1, Math.ceil(endHourFraction - minHour) + 2);
+
+        const colorId = ttColorMode === 'mono' ? '8' : (ttCourseColors[item.courseCode] || '2');
+        const col = GOOGLE_COLORS[colorId] || GOOGLE_COLORS['2'];
+        const escapedName = (item.courseName || '').replace(/'/g, "\\'");
+
+        gridHtml += `
+          <div onclick="openColorPicker('tt', '${item.courseCode}', '${escapedName}')" 
+               class="z-10 m-0.5 p-2 rounded-lg text-white shadow-sm hover:shadow-md cursor-pointer transition transform hover:-translate-y-0.5 flex flex-col justify-between overflow-hidden" 
+               style="grid-column: ${colIdx} / span 1; grid-row: ${startRow} / ${endRow}; background-color: ${col.bg}; color: ${col.text};"
+               title="${item.courseName} (${item.courseCode})\nTiết: ${item.periods} (${item.startTime} - ${item.endTime})\nPhòng: ${item.room} - ${item.campus}\n(Nhấp để đổi màu)">
+            <div>
+              <div class="font-bold text-xs leading-tight line-clamp-2">${item.courseName}</div>
+              <div class="text-[10px] opacity-90 font-mono mt-0.5">${item.courseCode}</div>
+            </div>
+            <div class="flex items-center justify-between text-[10px] mt-1 pt-1 border-t border-white/20">
+              <span class="font-semibold">${item.room}</span>
+              <span class="opacity-90 font-mono text-[9px]">${item.startTime}-${item.endTime}</span>
+            </div>
+          </div>
+        `;
+      });
+
+      gridHtml += `</div>`;
+      if (gridWrapper) gridWrapper.innerHTML = gridHtml;
+    }
+
+    function renderExamPreview() {
+      const previewBox = document.getElementById('exam-preview-box');
+      const chipsContainer = document.getElementById('exam-course-chips');
+      const timelineContainer = document.getElementById('exam-preview-timeline');
+
+      if (!parsedExams.length) {
+        if (previewBox) previewBox.classList.add('hidden');
+        return;
+      }
+      if (previewBox) previewBox.classList.remove('hidden');
+
+      const uniqueCourses = [];
+      const seen = new Set();
+      parsedExams.forEach(c => {
+        if (!seen.has(c.courseCode)) {
+          seen.add(c.courseCode);
+          uniqueCourses.push(c);
+        }
+      });
+
+      uniqueCourses.forEach((c, idx) => {
+        if (!examCourseColors[c.courseCode]) {
+          examCourseColors[c.courseCode] = examColorMode === 'tomato' ? '11' : examPalette[idx % examPalette.length];
+        }
+      });
+
+      if (chipsContainer) {
+        chipsContainer.innerHTML = uniqueCourses.map(c => {
+          const colorId = examColorMode === 'tomato' ? '11' : (examCourseColors[c.courseCode] || '11');
+          const col = GOOGLE_COLORS[colorId] || GOOGLE_COLORS['11'];
+          const escapedName = (c.courseName || '').replace(/'/g, "\\'");
+          return `
+            <button onclick="openColorPicker('exam', '${c.courseCode}', '${escapedName}')" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm text-xs font-medium text-slate-700 transition">
+              <span class="w-3.5 h-3.5 rounded-full shadow-inner inline-block flex-shrink-0" style="background-color: ${col.bg};"></span>
+              <span class="font-bold text-slate-800">${c.courseCode}</span>
+              <span class="truncate max-w-[140px] text-slate-500">${c.courseName}</span>
+              <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+            </button>
+          `;
+        }).join('');
+      }
+
+      if (timelineContainer) {
+        timelineContainer.innerHTML = parsedExams.map(ex => {
+          const colorId = examColorMode === 'tomato' ? '11' : (examCourseColors[ex.courseCode] || '11');
+          const col = GOOGLE_COLORS[colorId] || GOOGLE_COLORS['11'];
+          const [y, m, d] = ex.date.split('-');
+          const dateVn = `${d}/${m}/${y}`;
+          const thuLabel = ex.dayOfWeek === 8 ? 'Chủ Nhật' : `Thứ ${ex.dayOfWeek}`;
+          const escapedName = (ex.courseName || '').replace(/'/g, "\\'");
+
+          return `
+            <div onclick="openColorPicker('exam', '${ex.courseCode}', '${escapedName}')" 
+                 class="bg-white border border-slate-200 hover:border-slate-300 rounded-xl p-3 shadow-sm hover:shadow cursor-pointer transition flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <div class="w-3.5 h-10 rounded-full flex-shrink-0" style="background-color: ${col.bg};"></div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold text-xs text-slate-800">${ex.courseName}</span>
+                    <span class="text-[10px] font-mono font-semibold px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded">${ex.courseCode}</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full ${ex.examType === 'Giữa kỳ' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'} font-semibold">${ex.examType}</span>
+                  </div>
+                  <div class="text-xs text-slate-500 mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
+                    <span><i class="fa-regular fa-calendar text-blue-500"></i> ${thuLabel}, ${dateVn}</span>
+                    <span><i class="fa-regular fa-clock text-amber-500"></i> ${ex.startTime} - ${ex.endTime} (${ex.durationMinutes}p)</span>
+                    <span><i class="fa-solid fa-location-dot text-rose-500"></i> Phòng <strong>${ex.room}</strong></span>
+                  </div>
+                </div>
+              </div>
+              <div class="text-right flex-shrink-0">
+                <span class="text-[11px] text-blue-600 font-medium hover:underline flex items-center gap-1">
+                  <i class="fa-solid fa-paint-roller text-xs"></i> Đổi màu
+                </span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
     function renderExamResults(exams) {
       const container = document.getElementById('exam-cards-container');
       const emptyState = document.getElementById('exam-empty-state');
@@ -516,12 +993,14 @@ EE2003\tTrường điện từ\tL01\t3\tEE2003_L01\t2\t10 - 12\t15:00 - 17:50\tH
       const badge = document.getElementById('exam-badge');
       const statCount = document.getElementById('exam-stat-count');
       const statSemester = document.getElementById('exam-stat-semester');
+      const previewBox = document.getElementById('exam-preview-box');
 
       if (!exams.length) {
         container.innerHTML = '';
         emptyState.classList.remove('hidden');
         actionsBar.classList.add('hidden');
         badge.classList.add('hidden');
+        if (previewBox) previewBox.classList.add('hidden');
         return;
       }
 
@@ -586,6 +1065,7 @@ EE2003\tTrường điện từ\tL01\t3\tEE2003_L01\t2\t10 - 12\t15:00 - 17:50\tH
           </div>
         `;
       }).join('');
+      renderExamPreview();
     }
 
     // ==========================================
@@ -708,7 +1188,7 @@ EE2003\tTrường điện từ\tL01\t3\tEE2003_L01\t2\t10 - 12\t15:00 - 17:50\tH
               dateTime: `${ex.date}T${ex.endTime}:00+07:00`,
               timeZone: 'Asia/Ho_Chi_Minh'
             },
-            colorId: '11', // Màu đỏ cảnh báo thi
+            colorId: examColorMode === 'tomato' ? '11' : (examCourseColors[ex.courseCode] || '11'),
             reminders: {
               useDefault: false,
               overrides: [
@@ -1193,11 +1673,14 @@ EE2003\tTrường điện từ\tL01\t3\tEE2003_L01\t2\t10 - 12\t15:00 - 17:50\tH
       const statCount = document.getElementById('tt-stat-count');
       const statSemester = document.getElementById('tt-stat-semester');
 
+      const previewBox = document.getElementById('timetable-preview-box');
+
       if (!tt || !tt.length) {
         container.innerHTML = '';
         emptyState.classList.remove('hidden');
         actionsBar.classList.add('hidden');
         badge.classList.add('hidden');
+        if (previewBox) previewBox.classList.add('hidden');
         return;
       }
 
@@ -1275,6 +1758,7 @@ EE2003\tTrường điện từ\tL01\t3\tEE2003_L01\t2\t10 - 12\t15:00 - 17:50\tH
           </div>
         `;
       }).join('');
+      renderTimetablePreview();
     }
 
     // ==========================================
@@ -1387,7 +1871,7 @@ EE2003\tTrường điện từ\tL01\t3\tEE2003_L01\t2\t10 - 12\t15:00 - 17:50\tH
           progressBar.style.width = `${currentPercent}%`;
           progressPercent.textContent = `${currentPercent}%`;
 
-          const eventColor = colorMap[item.courseCode] || '2';
+          const eventColor = ttColorMode === 'mono' ? '8' : (ttCourseColors[item.courseCode] || colorMap[item.courseCode] || '2');
 
           // Nếu có thông tin neo tuần học và danh sách tuần học thực tế: Đẩy từng buổi học chính xác
           if (item.anchorWeek > 0 && item.anchorMondayDate && item.weekNumbers && item.weekNumbers.length > 0) {
