@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BKalendar Plus - Đồng bộ Thời khóa biểu & Lịch thi HCMUT</title>
+  <meta name="google-site-verification" content="Yk0hbRUki70o2cnindBVHmVRGgLtpp_NzkKoSH1f06k" />
+  <title>BKalendar 2.0 - Đồng bộ Thời khóa biểu & Lịch thi HCMUT</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -98,6 +99,15 @@
         </div>
         
         <div class="flex flex-wrap items-center gap-2">
+          <!-- Calendar Target Selector -->
+          <div class="flex items-center gap-1.5 text-xs bg-white px-3 py-2 rounded-xl border border-blue-200 shadow-sm">
+            <span class="font-bold text-slate-700 whitespace-nowrap"><i class="fa-regular fa-calendar-check text-blue-600"></i> Lưu vào:</span>
+            <select id="exam-target-calendar" class="bg-transparent font-semibold text-blue-900 outline-none cursor-pointer text-xs">
+              <option value="primary" selected>📌 Lịch Chính (Primary - Hiện ngay trên đt & máy tính)</option>
+              <option value="secondary">📁 Tạo bộ lịch riêng (Lịch Thi BK)</option>
+            </select>
+          </div>
+
           <!-- Direct Sync Button (The Star Feature) -->
           <button id="btn-sync-gcal" onclick="handleDirectGoogleSync()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-md flex items-center gap-2 transform active:scale-95">
             <i class="fa-brands fa-google text-yellow-300 text-sm"></i>
@@ -188,6 +198,15 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
+          <!-- Calendar Target Selector -->
+          <div class="flex items-center gap-1.5 text-xs bg-white px-3 py-2 rounded-xl border border-cyan-200 shadow-sm">
+            <span class="font-bold text-slate-700 whitespace-nowrap"><i class="fa-regular fa-calendar-check text-cyan-600"></i> Lưu vào:</span>
+            <select id="tt-target-calendar" class="bg-transparent font-semibold text-blue-900 outline-none cursor-pointer text-xs">
+              <option value="primary" selected>📌 Lịch Chính (Primary - Hiện ngay trên đt & máy tính)</option>
+              <option value="secondary">📁 Tạo bộ lịch riêng (TKB HCMUT)</option>
+            </select>
+          </div>
+
           <!-- Nút đồng bộ trực tiếp TKB lên Google Calendar -->
           <button id="btn-sync-tt-gcal" onclick="handleDirectTimetableGoogleSync()" class="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-md flex items-center gap-2 transform active:scale-95">
             <i class="fa-brands fa-google text-yellow-300 text-sm"></i>
@@ -362,15 +381,50 @@
     </div>
   </div>
 
+  <!-- Google Calendar API Disabled Warning Modal -->
+  <div id="api-disabled-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-rose-200">
+      <div class="w-14 h-14 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-2xl mb-4 mx-auto shadow-sm">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h3 class="text-base font-bold text-slate-800 text-center mb-1">Google Calendar API Chưa Được BẬT!</h3>
+      <p class="text-xs text-slate-600 mb-4 text-center leading-relaxed">
+        Dự án Google Cloud của bạn chưa kích hoạt dịch vụ <strong>Google Calendar API</strong>, nên Google từ chối ghi lịch vào tài khoản.
+      </p>
+
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 mb-5 space-y-1.5">
+        <div class="font-bold flex items-center gap-1.5 text-amber-800">
+          <i class="fa-solid fa-lightbulb text-amber-600"></i> Hướng dẫn kích hoạt 1 cú click:
+        </div>
+        <ol class="list-decimal pl-4 space-y-1 text-slate-700">
+          <li>Bấm vào nút xanh <strong>"Bật Google Calendar API Ngay"</strong> bên dưới.</li>
+          <li>Trang Google Cloud mở ra, bấm nút <strong>"BẬT" (hoặc "ENABLE")</strong>.</li>
+          <li>Quay lại đây bấm <strong>"Đồng bộ lên Google Calendar"</strong> là xong ngay lập tức!</li>
+        </ol>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <a href="https://console.cloud.google.com/apis/library/calendar-json.googleapis.com?project=gen-lang-client-0769562133" target="_blank" class="w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-xl transition shadow flex items-center justify-center gap-2">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i> Bật Google Calendar API Ngay (Google Cloud)
+        </a>
+        <button onclick="document.getElementById('api-disabled-modal').classList.add('hidden')" class="w-full py-2.5 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+          Đã hiểu, đóng lại
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Footer -->
-  <footer class="bg-slate-900 text-slate-400 text-xs py-5 mt-10">
+  <footer class="bg-slate-900 text-slate-400 text-xs py-6 mt-10 border-t border-slate-800">
     <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
       <div>
-        <p class="text-slate-300 font-semibold">BKalendar Plus (Personal Edition)</p>
-        <p class="text-slate-500">Mô phỏng BKalendar với tính năng đồng bộ trực tiếp Lịch thi MyBK</p>
+        <p class="text-slate-300 font-semibold">BKalendar 2.0 (HCMUT Community Edition)</p>
+        <p class="text-slate-500">Đồng bộ Thời khóa biểu & Lịch thi MyBK trực tiếp vào Google Calendar</p>
       </div>
-      <div class="text-slate-500">
-        Dành riêng cho sinh viên HCMUT
+      <div class="flex items-center gap-4 text-slate-400 text-xs">
+        <a href="privacy.html" class="hover:text-blue-400 transition underline underline-offset-2">Chính sách quyền riêng tư</a>
+        <span>•</span>
+        <a href="terms.html" class="hover:text-blue-400 transition underline underline-offset-2">Điều khoản dịch vụ</a>
       </div>
     </div>
   </footer>
@@ -1105,6 +1159,36 @@
       tokenClient.requestAccessToken({ prompt: 'consent' });
     }
 
+    // Helper gọi Google Calendar API có bắt lỗi và phát hiện Google Calendar API chưa bật
+    async function callGCalApi(url, options = {}) {
+      const res = await fetch(url, options);
+      if (!res.ok) {
+        let errData = {};
+        try { errData = await res.json(); } catch(e) {}
+        const errMsg = errData?.error?.message || `HTTP ${res.status}: ${res.statusText}`;
+        console.error('Google Calendar API Error:', res.status, errData);
+
+        if (res.status === 403 && (
+          errMsg.includes('Google Calendar API has not been used') ||
+          errMsg.includes('disabled') ||
+          errMsg.includes('accessNotConfigured') ||
+          errMsg.includes('it is disabled')
+        )) {
+          const err = new Error('API_NOT_ENABLED');
+          err.details = errMsg;
+          throw err;
+        }
+
+        throw new Error(errMsg);
+      }
+      return res.json().catch(() => ({}));
+    }
+
+    function showApiDisabledModal() {
+      const modal = document.getElementById('api-disabled-modal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
     async function executeDirectCalendarPush(accessToken) {
       const progressBox = document.getElementById('sync-progress-box');
       const progressText = document.getElementById('sync-progress-text');
@@ -1112,28 +1196,32 @@
       const progressPercent = document.getElementById('sync-progress-percent');
 
       progressBox.classList.remove('hidden');
-      progressText.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-blue-600"></i> Đang tìm hoặc tạo Lịch thi trên Google Calendar...';
+      progressText.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-blue-600"></i> Đang chuẩn bị lịch trên Google Calendar...';
       progressBar.style.width = '10%';
       progressPercent.textContent = '10%';
 
       try {
         const semester = parsedExams[0]?.semester || 'HCMUT';
-        const targetCalSummary = `Lịch Thi BK - HK ${semester}`;
-
-        // 1. Kiểm tra xem đã có Lịch mang tên này chưa
+        const targetOption = document.getElementById('exam-target-calendar')?.value || 'primary';
         let calendarId = 'primary';
-        const listRes = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
-          headers: { 'Authorization': `Bearer ${accessToken}` }
-        });
-        
-        if (listRes.ok) {
-          const listData = await listRes.json();
+        let calTitleDisplay = 'Lịch Chính (Primary Calendar)';
+
+        // Nếu người dùng chọn tạo bộ lịch riêng thay vì lịch chính
+        if (targetOption === 'secondary') {
+          const targetCalSummary = `Lịch Thi BK - HK ${semester}`;
+          calTitleDisplay = `bộ lịch riêng "${targetCalSummary}"`;
+
+          // 1. Kiểm tra xem đã có Lịch mang tên này chưa
+          const listData = await callGCalApi('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+          });
+          
           const existingCal = listData.items?.find(c => c.summary === targetCalSummary);
           if (existingCal) {
             calendarId = existingCal.id;
           } else {
             // Tạo mới một Calendar riêng biệt
-            const createCalRes = await fetch('https://www.googleapis.com/calendar/v3/calendars', {
+            const newCal = await callGCalApi('https://www.googleapis.com/calendar/v3/calendars', {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${accessToken}`,
@@ -1141,22 +1229,28 @@
               },
               body: JSON.stringify({
                 summary: targetCalSummary,
-                description: 'Lịch thi HCMUT được đồng bộ tự động từ BKalendar Plus',
+                description: 'Lịch thi HCMUT được đồng bộ tự động từ BKalendar 2.0',
                 timeZone: 'Asia/Ho_Chi_Minh'
               })
             });
-            if (createCalRes.ok) {
-              const newCal = await createCalRes.json();
-              calendarId = newCal.id;
-            }
+            calendarId = newCal.id;
+
+            // Đảm bảo đưa vào danh sách lịch của người dùng và ghim hiển thị (selected: true)
+            await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ id: calendarId, selected: true })
+            }).catch(() => {});
           }
         }
 
         // 2. Lấy danh sách sự kiện hiện có trong Lịch đó để tránh trùng lặp (nếu đồng bộ lại)
-        const existingEventsRes = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?maxResults=250`, {
+        const existingEventsData = await callGCalApi(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?maxResults=250`, {
           headers: { 'Authorization': `Bearer ${accessToken}` }
         });
-        const existingEventsData = existingEventsRes.ok ? await existingEventsRes.json() : { items: [] };
         const existingEvents = existingEventsData.items || [];
 
         // 3. Đẩy từng môn thi vào Google Calendar
@@ -1199,11 +1293,11 @@
           };
 
           // Tìm xem môn này đã có sự kiện chưa (so khớp mã môn trong summary)
-          const matchedEvent = existingEvents.find(e => e.summary && e.summary.includes(`(${ex.courseCode})`));
+          const matchedEvent = existingEvents.find(e => e.summary && e.summary.includes(ex.courseName));
 
           if (matchedEvent) {
             // Cập nhật (PUT) để tránh nhân đôi
-            await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${matchedEvent.id}`, {
+            await callGCalApi(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${matchedEvent.id}`, {
               method: 'PUT',
               headers: {
                 'Authorization': `Bearer ${accessToken}`,
@@ -1213,7 +1307,7 @@
             });
           } else {
             // Tạo mới (POST)
-            await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`, {
+            await callGCalApi(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`, {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${accessToken}`,
@@ -1231,12 +1325,16 @@
         progressText.innerHTML = '<i class="fa-solid fa-check text-emerald-600"></i> Đã hoàn tất đồng bộ!';
         setTimeout(() => { progressBox.classList.add('hidden'); }, 1500);
 
-        document.getElementById('success-modal-msg').innerHTML = `Đã đồng bộ thành công trực tiếp <strong>${successCount} môn thi</strong> vào Google Calendar (lịch <em>"${targetCalSummary}"</em>)! Mở điện thoại hoặc máy tính là bạn sẽ thấy ngay.`;
+        document.getElementById('success-modal-msg').innerHTML = `Đã đồng bộ thành công trực tiếp <strong>${successCount} môn thi</strong> vào Google Calendar (${calTitleDisplay})! Mở điện thoại hoặc máy tính là bạn sẽ thấy ngay.`;
         document.getElementById('success-modal').classList.remove('hidden');
 
       } catch (err) {
-        alert('Có lỗi xảy ra khi đẩy lên Google Calendar: ' + err.message);
         progressBox.classList.add('hidden');
+        if (err.message === 'API_NOT_ENABLED') {
+          showApiDisabledModal();
+        } else {
+          alert('Có lỗi xảy ra khi đẩy lên Google Calendar: ' + err.message);
+        }
       }
     }
 
@@ -1804,27 +1902,31 @@
       const progressPercent = document.getElementById('sync-tt-progress-percent');
 
       progressBox.classList.remove('hidden');
-      progressText.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-cyan-600"></i> Đang tìm hoặc tạo Lịch TKB trên Google Calendar...';
+      progressText.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-cyan-600"></i> Đang chuẩn bị Thời khóa biểu trên Google Calendar...';
       progressBar.style.width = '10%';
       progressPercent.textContent = '10%';
 
       try {
         const semester = parsedTimetables[0]?.semester || '20261';
-        const targetCalSummary = `Thời Khóa Biểu HCMUT - HK ${semester}`;
+        const targetOption = document.getElementById('tt-target-calendar')?.value || 'primary';
         let calendarId = 'primary';
+        let calTitleDisplay = 'Lịch Chính (Primary Calendar)';
 
-        // 1. Kiểm tra hoặc tạo calendar riêng
-        const listRes = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
-          headers: { 'Authorization': `Bearer ${accessToken}` }
-        });
+        // Nếu người dùng chọn tạo bộ lịch riêng
+        if (targetOption === 'secondary') {
+          const targetCalSummary = `Thời Khóa Biểu HCMUT - HK ${semester}`;
+          calTitleDisplay = `bộ lịch riêng "${targetCalSummary}"`;
 
-        if (listRes.ok) {
-          const listData = await listRes.json();
+          // 1. Kiểm tra hoặc tạo calendar riêng
+          const listData = await callGCalApi('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+          });
+
           const existingCal = listData.items?.find(c => c.summary === targetCalSummary);
           if (existingCal) {
             calendarId = existingCal.id;
           } else {
-            const createCalRes = await fetch('https://www.googleapis.com/calendar/v3/calendars', {
+            const newCal = await callGCalApi('https://www.googleapis.com/calendar/v3/calendars', {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${accessToken}`,
@@ -1832,14 +1934,21 @@
               },
               body: JSON.stringify({
                 summary: targetCalSummary,
-                description: `Thời khóa biểu học kỳ ${semester} HCMUT được đồng bộ tự động từ BKalendar Plus`,
+                description: `Thời khóa biểu học kỳ ${semester} HCMUT được đồng bộ tự động từ BKalendar 2.0`,
                 timeZone: 'Asia/Ho_Chi_Minh'
               })
             });
-            if (createCalRes.ok) {
-              const newCal = await createCalRes.json();
-              calendarId = newCal.id;
-            }
+            calendarId = newCal.id;
+
+            // Đưa vào danh sách lịch và chọn hiển thị (selected: true)
+            await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ id: calendarId, selected: true })
+            }).catch(() => {});
           }
         }
 
@@ -1854,8 +1963,7 @@
           return monday.toISOString().split('T')[0];
         }
 
-        // Bảng màu đa sắc tự động phân biệt các môn giống BKalendar gốc:
-        // 2=Xanh lá (Sage), 6=Cam (Tangerine), 10=Xanh lục đậm, 7=Xanh da trời, 5=Vàng, 4=Hồng, 9=Xanh tím, 3=Tím
+        // Bảng màu đa sắc tự động phân biệt các môn giống BKalendar gốc
         const COURSE_PALETTE = ['2', '6', '10', '7', '5', '4', '9', '3', '1'];
         const uniqueCodes = [...new Set(schedulableCourses.map(c => c.courseCode))];
         const colorMap = {};
@@ -1902,7 +2010,7 @@
                 }
               };
 
-              await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`, {
+              await callGCalApi(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`, {
                 method: 'POST',
                 headers: {
                   'Authorization': `Bearer ${accessToken}`,
@@ -1931,7 +2039,7 @@
               colorId: eventColor
             };
 
-            await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`, {
+            await callGCalApi(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`, {
               method: 'POST',
               headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
               body: JSON.stringify(eventPayload)
@@ -1946,12 +2054,16 @@
         progressText.innerHTML = '<i class="fa-solid fa-check text-emerald-600"></i> Đã hoàn tất đồng bộ TKB!';
         setTimeout(() => { progressBox.classList.add('hidden'); }, 1500);
 
-        document.getElementById('success-modal-msg').innerHTML = `Đã đồng bộ thành công trực tiếp <strong>${successCount} môn học</strong> vào Google Calendar (lịch <em>"${targetCalSummary}"</em>) với giao diện gọn đẹp!`;
+        document.getElementById('success-modal-msg').innerHTML = `Đã đồng bộ thành công trực tiếp <strong>${successCount} môn học</strong> vào Google Calendar (${calTitleDisplay}) với giao diện gọn đẹp! Mở điện thoại hoặc máy tính là bạn sẽ thấy ngay.`;
         document.getElementById('success-modal').classList.remove('hidden');
 
       } catch (err) {
-        alert('Có lỗi xảy ra khi đẩy TKB lên Google Calendar: ' + err.message);
         progressBox.classList.add('hidden');
+        if (err.message === 'API_NOT_ENABLED') {
+          showApiDisabledModal();
+        } else {
+          alert('Có lỗi xảy ra khi đẩy TKB lên Google Calendar: ' + err.message);
+        }
       }
     }
 
