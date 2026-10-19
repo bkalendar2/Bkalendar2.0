@@ -1,4 +1,4 @@
-# Bkalendar2.0
+[# Bkalendar2.0](https://bkalendar2.github.io/Bkalendar2.0/)
 # BKalendar Plus (Personal Edition) 🎓📅
 
 Ứng dụng cá nhân mô phỏng và mở rộng tính năng của **BKalendar**, hỗ trợ nhận diện và đồng bộ cả **Thời khóa biểu** và **Lịch kiểm tra - thi** từ hệ thống MyBK của Trường Đại học Bách khoa TP.HCM (HCMUT).
