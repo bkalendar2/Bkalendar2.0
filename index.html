@@ -26,16 +26,12 @@
         <div>
           <h1 class="text-lg font-bold flex items-center gap-2">
             BKalendar Plus
-            <span class="bg-blue-600 text-blue-100 text-xs px-2 py-0.5 rounded-full font-medium">Bản Cá Nhân</span>
           </h1>
           <p class="text-xs text-blue-200">Đồng bộ Thời khóa biểu & Lịch thi MyBK trực tiếp vào Google Calendar</p>
         </div>
       </div>
       <div class="flex items-center space-x-3 text-sm">
-        <button onclick="openConfigModal()" class="text-blue-200 hover:text-white transition flex items-center gap-1.5 text-xs bg-blue-800/60 hover:bg-blue-800 px-3 py-1.5 rounded-lg border border-blue-700">
-          <i class="fa-solid fa-gear"></i> <span id="nav-gcal-status">Cài đặt Google OAuth</span>
-        </button>
-        <a href="https://mybk.hcmut.edu.vn/app" target="_blank" class="bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow-sm">
+        <a href="https://mybk.hcmut.edu.vn/app" target="_blank" class="bg-blue-600 hover:bg-blue-500 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow-sm">
           <i class="fa-solid fa-arrow-up-right-from-square"></i> Mở MyBK
         </a>
       </div>
@@ -283,7 +279,18 @@
     let parsedExams = [];
     let parsedTimetables = [];
 
+    // =========================================================================
+    // CẤU HÌNH GOOGLE CLIENT ID DÙNG CHUNG CHO TẤT CẢ MỌI NGƯỜI
+    // Điền mã Client ID của bạn vào dấu ngoặc kép dưới đây một lần duy nhất.
+    // Khi đó BẤT KỲ AI vào trang web đều bấm đồng bộ được ngay, KHÔNG CẦN CÀI ĐẶT!
+    // =========================================================================
+    const GLOBAL_GOOGLE_CLIENT_ID = "602143277681-po9dk24l9q6qlf3o02lgmufi4dtl7vif.apps.googleusercontent.com";
+
     const CLIENT_ID_STORAGE_KEY = 'bkalendar_google_client_id';
+
+    function getEffectiveClientId() {
+      return GLOBAL_GOOGLE_CLIENT_ID || localStorage.getItem(CLIENT_ID_STORAGE_KEY) || '';
+    }
 
     // Mẫu dữ liệu Lịch thi thực tế từ MyBK
     const SAMPLE_EXAM_DATA = `Học kỳ\tMôn học\tNhóm lớp\tNgày thi\tLoại thi\tCơ sở\tMã phòng\tThứ\tGiờ bắt đầu\tTổng số phút\tCập nhật cuối cùng vào lúc
@@ -305,9 +312,11 @@ EE2003\tTrường điện từ\tL01\t3\tEE2003_L01\t2\t10 - 12\t15:00 - 17:50\tH
     });
 
     function updateNavStatus() {
-      const saved = localStorage.getItem(CLIENT_ID_STORAGE_KEY);
+      const activeId = getEffectiveClientId();
       const statusSpan = document.getElementById('nav-gcal-status');
-      if (saved) {
+      if (GLOBAL_GOOGLE_CLIENT_ID) {
+        statusSpan.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i> Google Sync Sẵn Sàng';
+      } else if (activeId) {
         statusSpan.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i> Đã có Google OAuth';
       } else {
         statusSpan.innerHTML = '<i class="fa-solid fa-circle-exclamation text-amber-400"></i> Cài đặt Google OAuth';
@@ -315,7 +324,7 @@ EE2003\tTrường điện từ\tL01\t3\tEE2003_L01\t2\t10 - 12\t15:00 - 17:50\tH
     }
 
     function openConfigModal() {
-      const saved = localStorage.getItem(CLIENT_ID_STORAGE_KEY) || '';
+      const saved = localStorage.getItem(CLIENT_ID_STORAGE_KEY) || GLOBAL_GOOGLE_CLIENT_ID || '';
       document.getElementById('cfg-client-id').value = saved;
       document.getElementById('config-modal').classList.remove('hidden');
     }
@@ -588,7 +597,7 @@ EE2003\tTrường điện từ\tL01\t3\tEE2003_L01\t2\t10 - 12\t15:00 - 17:50\tH
         return;
       }
 
-      const clientId = localStorage.getItem(CLIENT_ID_STORAGE_KEY);
+      const clientId = getEffectiveClientId();
       if (!clientId) {
         openConfigModal();
         return;
@@ -804,6 +813,161 @@ EE2003\tTrường điện từ\tL01\t3\tEE2003_L01\t2\t10 - 12\t15:00 - 17:50\tH
     }
 
     // ==========================================
+    // Parser Lịch Giảng viên (tkb.hcmut.edu.vn) - Chuẩn BKalendar
+    // ==========================================
+    function parseLecturerFormat(text, lines) {
+      const rows = [];
+      const headerIdx = lines.findIndex(l => {
+        const norm = l.toLowerCase().replace(/\s+/g, ' ');
+        return norm.includes('lớp') && norm.includes('tên mh') && norm.includes('phòng') && norm.includes('tuần học');
+      });
+      if (headerIdx === -1) return rows;
+
+      // Tìm năm học & học kỳ
+      let semester = 'HCMUT';
+      const yearMatch = text.match(/Năm học\s*(\d+)/i);
+      const semMatch = text.match(/Học kỳ\s*([123])/i);
+      if (yearMatch && semMatch) {
+        semester = `${(parseInt(yearMatch[1], 10) % 100)}${semMatch[1]}`;
+      }
+
+      for (let i = headerIdx + 1; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.startsWith('Đang xem') || line.startsWith('Version')) break;
+        const cols = line.split('\t').map(c => c.trim());
+        if (cols.length >= 8) {
+          // Lớp (0), Tên MH (1), Phòng (2), Dãy (3), Thứ (4), Số tiết (5), Tiết (6), Giờ (7), Tuần (8)
+          const classCode = cols[0];
+          const courseName = cols[1];
+          const room = cols[2];
+          const dayVal = parseInt(cols[4], 10);
+          const dayOfWeek = (dayVal >= 2 && dayVal <= 7) ? dayVal : (cols[4] === 'CN' || cols[4] === '8' ? 8 : 0);
+          const daysMap = { 2: 'Thứ Hai', 3: 'Thứ Ba', 4: 'Thứ Tư', 5: 'Thứ Năm', 6: 'Thứ Sáu', 7: 'Thứ Bảy', 8: 'Chủ Nhật' };
+          const dayLabel = daysMap[dayOfWeek] || 'Chưa rõ';
+
+          let startTime = '12:00', endTime = '16:50';
+          const timeMatch = (cols[7] || '').match(/(\d{1,2}):(\d{2})\s*[-_–]\s*(\d{1,2}):(\d{2})/);
+          if (timeMatch) {
+            startTime = `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}`;
+            endTime = `${timeMatch[3].padStart(2, '0')}:${timeMatch[4]}`;
+          }
+
+          const weeksRaw = cols[8] || '';
+          const weekNumbers = [];
+          if (weeksRaw.includes('|')) {
+            weeksRaw.split('|').forEach(w => {
+              if (/^\d+$/.test(w.trim())) weekNumbers.push(parseInt(w.trim(), 10));
+            });
+          }
+
+          const codeMatch = classCode.match(/[A-Z]{2}\d{4}/);
+          const courseCode = codeMatch ? codeMatch[0] : classCode;
+
+          rows.push({
+            semester,
+            courseCode,
+            courseName,
+            credits: 0,
+            feeCredits: 0,
+            group: classCode,
+            dayOfWeek,
+            dayLabel,
+            periods: cols[6] || `${cols[5] || ''} tiết`,
+            timeRange: `${startTime} - ${endTime}`,
+            startTime,
+            endTime,
+            room,
+            campus: cols[3] || 'HCMUT',
+            weeksRaw,
+            weekNumbers,
+            anchorWeek: 0,
+            anchorMondayDate: null
+          });
+        }
+      }
+      return rows;
+    }
+
+    // ==========================================
+    // Parser Lịch Sau đại học (grad.hcmut.edu.vn) - Chuẩn BKalendar
+    // ==========================================
+    function parsePostgradFormat(text, lines) {
+      const rows = [];
+      const headerIdx = lines.findIndex(l => {
+        const norm = l.toLowerCase().replace(/\s+/g, ' ');
+        return norm.includes('cán bộ giảng dạy') && norm.includes('môn học') && norm.includes('thứ') && norm.includes('tiết');
+      });
+      if (headerIdx === -1) return rows;
+
+      let semester = 'HCMUT';
+      const semMatch = text.match(/Học kỳ\s*([123])\/(\d+)-(\d+)/i);
+      if (semMatch) {
+        semester = `${(parseInt(semMatch[2], 10) % 100)}${semMatch[1]}`;
+      }
+
+      const P_START = { 1: '06:00', 2: '07:00', 3: '08:00', 4: '09:00', 5: '10:00', 6: '11:00', 7: '12:00', 8: '13:00', 9: '14:00', 10: '15:00', 11: '16:00', 12: '17:00', 13: '18:00', 14: '18:50', 15: '19:40', 16: '20:30', 17: '21:20' };
+      const P_END = { 1: '06:50', 2: '07:50', 3: '08:50', 4: '09:50', 5: '10:50', 6: '11:50', 7: '12:50', 8: '13:50', 9: '14:50', 10: '15:50', 11: '16:50', 12: '17:50', 13: '18:50', 14: '19:40', 15: '20:30', 16: '21:20', 17: '22:10' };
+
+      for (let i = headerIdx + 1; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.trim() === '' || line.startsWith('Tối') || line.startsWith('Version')) break;
+        const cols = line.split('\t').map(c => c.trim());
+        if (cols.length >= 7) {
+          // CBGD (0), Môn học (1), Lớp (2), Thứ (3), Tiết bắt đầu (4), Tiết kết thúc (5), Phòng (6), Tuần (7), Ghi chú (8)
+          const teacher = cols[0];
+          const courseRaw = cols[1];
+          const classCode = cols[2];
+          const dayStr = cols[3];
+          const startPeriod = parseInt(cols[4], 10) || 1;
+          const endPeriod = parseInt(cols[5], 10) || startPeriod;
+          const room = cols[6];
+          const weeksRaw = cols[7] || '';
+
+          const dayMap = { 'hai': 2, 'ba': 3, 'tư': 4, 'năm': 5, 'sáu': 6, 'bảy': 7, 'cn': 8, 'chủ nhật': 8 };
+          const dayOfWeek = dayMap[dayStr.toLowerCase()] || 0;
+          const daysMap = { 2: 'Thứ Hai', 3: 'Thứ Ba', 4: 'Thứ Tư', 5: 'Thứ Năm', 6: 'Thứ Sáu', 7: 'Thứ Bảy', 8: 'Chủ Nhật' };
+          const dayLabel = daysMap[dayOfWeek] || dayStr;
+
+          const startTime = P_START[startPeriod] || `${String(startPeriod + 5).padStart(2, '0')}:00`;
+          const endTime = P_END[endPeriod] || `${String(endPeriod + 5).padStart(2, '0')}:50`;
+
+          const weekNumbers = [];
+          if (weeksRaw.includes('|')) {
+            weeksRaw.split('|').forEach(w => {
+              if (/^\d+$/.test(w.trim())) weekNumbers.push(parseInt(w.trim(), 10));
+            });
+          }
+
+          const codeMatch = courseRaw.match(/\(?([A-Z]{2}\d{4})\)?/);
+          const courseCode = codeMatch ? codeMatch[1] : '';
+          const courseName = courseRaw.replace(/\([A-Z]{2}\d{4}\)\s*[-_–]?\s*/, '').trim() || courseRaw;
+
+          rows.push({
+            semester,
+            courseCode,
+            courseName,
+            credits: 0,
+            feeCredits: 0,
+            group: `${classCode} (${teacher})`,
+            dayOfWeek,
+            dayLabel,
+            periods: `${startPeriod} - ${endPeriod}`,
+            timeRange: `${startTime} - ${endTime}`,
+            startTime,
+            endTime,
+            room,
+            campus: 'HCMUT',
+            weeksRaw,
+            weekNumbers,
+            anchorWeek: 0,
+            anchorMondayDate: null
+          });
+        }
+      }
+      return rows;
+    }
+
+    // ==========================================
     // Parser Thời khóa biểu tuần MyBK (Chuẩn 12 trường dữ liệu MyBK)
     // ==========================================
     function parseMyBKTimetable(text) {
@@ -923,6 +1087,93 @@ EE2003\tTrường điện từ\tL01\t3\tEE2003_L01\t2\t10 - 12\t15:00 - 17:50\tH
         ptr++;
       }
 
+      // 2. Kiểm tra nếu là lịch Giảng viên (tkb.hcmut.edu.vn)
+      const lecturerParsed = parseLecturerFormat(text, lines);
+      if (lecturerParsed.length > 0) return lecturerParsed;
+
+      // 3. Kiểm tra nếu là lịch Sau đại học (grad.hcmut.edu.vn)
+      const postgradParsed = parsePostgradFormat(text, lines);
+      if (postgradParsed.length > 0) return postgradParsed;
+
+      // 4. Hỗ trợ bổ sung: Heuristic nhận diện dòng chứa mã môn học (dự phòng)
+      if (list.length === 0) {
+        for (const line of lines) {
+          if (line.includes('Mã MH') || line.includes('Tên môn') || line.startsWith('Trình bày') || line.startsWith('Version')) continue;
+          const matchCode = line.match(/\b([A-Z]{2}\d{4})\b/);
+          if (matchCode) {
+            const courseCode = matchCode[1];
+            const tokens = line.includes('\t') ? line.split('\t').map(t => t.trim()) : line.split(/\s{2,}/);
+            let courseName = 'Môn học';
+            let group = '';
+            let dayOfWeek = 0;
+            let dayLabel = 'Chưa xếp lịch';
+            let startTime = '07:00', endTime = '09:50';
+            let periods = '2-4';
+            let room = 'Chưa có';
+            let campus = 'Cơ sở 2 (Dĩ An)';
+            let weeksRaw = 'Cả học kỳ';
+            const weekNumbers = [];
+
+            tokens.forEach(tok => {
+              if (/^[2-7]$/.test(tok) || tok === 'CN') {
+                dayOfWeek = tok === 'CN' ? 8 : parseInt(tok, 10);
+                const daysMap = { 2: 'Thứ Hai', 3: 'Thứ Ba', 4: 'Thứ Tư', 5: 'Thứ Năm', 6: 'Thứ Sáu', 7: 'Thứ Bảy', 8: 'Chủ Nhật' };
+                dayLabel = daysMap[dayOfWeek];
+              }
+              const pMatch = tok.match(/^(\d{1,2})\s*[-_–]\s*(\d{1,2})$/);
+              if (pMatch && parseInt(pMatch[1], 10) <= 16) {
+                periods = tok;
+                const sp = parseInt(pMatch[1], 10);
+                const ep = parseInt(pMatch[2], 10);
+                const P_MAP = { 1: '06:00', 2: '07:00', 3: '08:00', 4: '09:00', 5: '10:00', 6: '11:00', 7: '12:00', 8: '13:00', 9: '14:00', 10: '15:00', 11: '16:00', 12: '17:00', 13: '18:00', 14: '18:50', 15: '19:40', 16: '20:30' };
+                const P_END = { 1: '06:50', 2: '07:50', 3: '08:50', 4: '09:50', 5: '10:50', 6: '11:50', 7: '12:50', 8: '13:50', 9: '14:50', 10: '15:50', 11: '16:50', 12: '17:50', 13: '18:50', 14: '19:40', 15: '20:30', 16: '21:20' };
+                if (P_MAP[sp]) startTime = P_MAP[sp];
+                if (P_END[ep]) endTime = P_END[ep];
+              }
+              const tRange = tok.match(/(\d{1,2}):(\d{2})\s*[-_–]\s*(\d{1,2}):(\d{2})/);
+              if (tRange) {
+                startTime = `${tRange[1].padStart(2, '0')}:${tRange[2]}`;
+                endTime = `${tRange[3].padStart(2, '0')}:${tRange[4]}`;
+              }
+              if (/^[A-Z]\d+[-_]\d+$/i.test(tok) || /^\d+[A-Z]\d+$/i.test(tok)) room = tok;
+              if (tok.includes('CS2') || tok.includes('Dĩ An')) campus = 'Cơ sở 2 (Dĩ An)';
+              if (tok.includes('CS1') || tok.includes('Lý Thường Kiệt')) campus = 'Cơ sở 1 (Lý Thường Kiệt)';
+              if (tok.includes('|')) {
+                weeksRaw = tok;
+                tok.split('|').forEach(w => {
+                  if (/^\d+$/.test(w.trim())) weekNumbers.push(parseInt(w.trim(), 10));
+                });
+              }
+              if (/^[A-Za-zÀ-ỹ\s]{4,}$/.test(tok) && !tok.includes('Thứ') && !tok.includes('Học kỳ') && tok !== courseCode) {
+                courseName = tok;
+              }
+              if (/^L\d+|^CC\d+|^[A-Z]\d+$/i.test(tok) && tok !== courseCode) group = tok;
+            });
+
+            list.push({
+              semester: 'HCMUT',
+              courseCode,
+              courseName,
+              credits: 0,
+              feeCredits: 0,
+              group,
+              dayOfWeek,
+              dayLabel,
+              periods,
+              timeRange: `${startTime} - ${endTime}`,
+              startTime,
+              endTime,
+              room,
+              campus,
+              weeksRaw,
+              weekNumbers,
+              anchorWeek,
+              anchorMondayDate
+            });
+          }
+        }
+      }
+
       // Sắp xếp TKB: Các môn có lịch học xếp trước (theo Thứ và Giờ), các môn chưa xếp lịch xếp sau
       list.sort((a, b) => {
         if (a.dayOfWeek === 0 && b.dayOfWeek !== 0) return 1;
@@ -1036,7 +1287,7 @@ EE2003\tTrường điện từ\tL01\t3\tEE2003_L01\t2\t10 - 12\t15:00 - 17:50\tH
         return;
       }
 
-      const clientId = localStorage.getItem(CLIENT_ID_STORAGE_KEY);
+      const clientId = getEffectiveClientId();
       if (!clientId) {
         openConfigModal();
         return;
