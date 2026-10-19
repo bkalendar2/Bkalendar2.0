@@ -7,61 +7,119 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased py-12 px-4">
-  <div class="max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 sm:p-10 shadow-sm space-y-6">
-    <div class="border-b border-slate-100 pb-5">
-      <h1 class="text-2xl font-bold text-slate-900">Chính Sách Quyền Riêng Tư (Privacy Policy)</h1>
-      <p class="text-sm text-slate-500 mt-1">Ứng dụng: <strong>BKalendar 2.0</strong> • Cập nhật lần cuối: 19/10/2026</p>
+  <div class="max-w-4xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 sm:p-12 shadow-sm space-y-8">
+    
+    <div class="border-b border-slate-200 pb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Official Document</span>
+        <span class="text-xs text-slate-400">Effective Date: October 19, 2026</span>
+      </div>
+      <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Privacy Policy / Chính Sách Quyền Riêng Tư</h1>
+      <p class="text-sm text-slate-500 mt-2">
+        Application: <strong>BKalendar 2.0</strong> • Hosted at: <a href="https://bkalendar2.github.io/Bkalendar2.0/" class="text-blue-600 hover:underline">https://bkalendar2.github.io/Bkalendar2.0/</a>
+      </p>
     </div>
 
+    <!-- Section: English Summary (For Google Verification Team) -->
+    <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-5 text-sm space-y-3">
+      <h2 class="font-bold text-blue-900 text-base flex items-center gap-2">
+        <span>🌐</span> English Summary for Google API Verification & Compliance
+      </h2>
+      <p class="text-slate-700 leading-relaxed">
+        <strong>BKalendar 2.0</strong> is an open-source, client-side educational utility designed for students at Ho Chi Minh City University of Technology (HCMUT - VNU-HCM). It allows students to parse their academic timetables and examination schedules from the university portal (MyBK) and export them directly to their personal Google Calendar accounts.
+      </p>
+      <div class="space-y-2 text-slate-700 text-xs">
+        <p><strong>1. Data Access & Use:</strong> BKalendar 2.0 requests access to Google Calendar API (<code class="bg-blue-100 px-1 py-0.5 rounded">calendar.events</code>) solely to create and manage academic calendar events (class schedules and exam dates) on the user's explicit request. We do not read, access, or modify any other personal calendar events.</p>
+        <p><strong>2. Data Storage & Sharing:</strong> BKalendar 2.0 operates <strong>100% client-side</strong> within the user's web browser. We do not operate any backend servers, databases, or external storage. No user data, schedule information, or OAuth access tokens are ever collected, stored, logged, or transferred to any third party or remote server.</p>
+        <p><strong>3. Google API Limited Use Disclosure:</strong> BKalendar 2.0's use and transfer to any other app of information received from Google APIs will adhere to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" class="text-blue-700 underline font-semibold">Google API Services User Data Policy</a>, including the Limited Use requirements.</p>
+      </div>
+    </div>
+
+    <!-- Section 1 -->
     <section class="space-y-3">
-      <h2 class="text-base font-bold text-slate-800">1. Giới thiệu</h2>
+      <h2 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">1. Giới thiệu về ứng dụng (Introduction)</h2>
       <p class="text-sm text-slate-600 leading-relaxed">
-        BKalendar 2.0 (<a href="https://bkalendar2.github.io/Bkalendar2.0/" class="text-blue-600 hover:underline">https://bkalendar2.github.io/Bkalendar2.0/</a>) là ứng dụng mã nguồn mở hỗ trợ sinh viên Trường Đại học Bách Khoa TP.HCM (HCMUT) chuyển đổi thời khóa biểu và lịch thi từ cổng thông tin MyBK sang Google Calendar cá nhân một cách thuận tiện.
+        BKalendar 2.0 là tiện ích web phi thương mại được phát triển để phục vụ cộng đồng sinh viên Trường Đại học Bách Khoa - ĐHQG-HCM. Trang web cho phép sinh viên chuyển đổi nhanh dữ liệu thời khóa biểu và lịch thi từ hệ thống MyBK thành định dạng sự kiện trên Google Calendar hoặc xuất file iCalendar (.ics).
+      </p>
+      <p class="text-sm text-slate-600 leading-relaxed">
+        Trang web được lưu trữ công khai trên GitHub Pages tại địa chỉ: <a href="https://bkalendar2.github.io/Bkalendar2.0/" class="text-blue-600 hover:underline">https://bkalendar2.github.io/Bkalendar2.0/</a>.
       </p>
     </section>
 
+    <!-- Section 2 -->
     <section class="space-y-3">
-      <h2 class="text-base font-bold text-slate-800">2. Dữ liệu thu thập và xử lý</h2>
-      <p class="text-sm text-slate-600 leading-relaxed">
-        <strong>Chúng tôi KHÔNG thu thập, lưu trữ hoặc chia sẻ bất kỳ dữ liệu cá nhân nào của bạn.</strong>
-      </p>
-      <ul class="list-disc pl-5 text-sm text-slate-600 space-y-1.5">
-        <li>Toàn bộ quá trình đọc, giải mã dữ liệu thời khóa biểu và lịch thi diễn ra <strong>100% trên trình duyệt web của bạn (Client-side)</strong>.</li>
-        <li>Ứng dụng không sử dụng máy chủ trung gian (No backend server), không có cơ sở dữ liệu để lưu trữ lịch trình của bạn.</li>
+      <h2 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">2. Dữ liệu cá nhân và cơ chế xử lý (Data Collection & Processing)</h2>
+      <ul class="list-disc pl-5 text-sm text-slate-600 space-y-2">
+        <li><strong>Không lưu trữ dữ liệu (No Data Retention):</strong> Toàn bộ dữ liệu về mã sinh viên, tên môn học, phòng học, ngày giờ thi được xử lý trực tiếp trên bộ nhớ tạm của trình duyệt web của bạn thông qua JavaScript phía máy khách (Client-side rendering).</li>
+        <li><strong>Không có máy chủ trung gian (No Backend Server):</strong> Ứng dụng không sở hữu máy chủ backend, không sử dụng cơ sở dữ liệu (database), và không có cơ chế ghi nhận nhật ký (log) thông tin cá nhân của người dùng.</li>
+        <li><strong>Không chia sẻ cho bên thứ ba (No Third-Party Sharing):</strong> Chúng tôi không bán, trao đổi hoặc truyền tải bất kỳ dữ liệu nào của bạn cho bất kỳ đối tác hay tổ chức nào khác.</li>
       </ul>
     </section>
 
+    <!-- Section 3 -->
     <section class="space-y-3">
-      <h2 class="text-base font-bold text-slate-800">3. Sử dụng quyền Google Calendar API</h2>
+      <h2 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">3. Quyền truy cập Google Calendar API (Google API Scopes)</h2>
       <p class="text-sm text-slate-600 leading-relaxed">
-        Khi bạn bấm "Đồng Bộ Trực Tiếp Lên Google Calendar", ứng dụng sẽ yêu cầu quyền truy cập Google Calendar qua giao thức OAuth 2.0 chính thức của Google:
+        Khi bạn thực hiện tính năng "Đồng bộ trực tiếp lên Google Calendar", ứng dụng sẽ yêu cầu quyền truy cập Google Calendar thông qua giao thức Google Identity Services OAuth 2.0:
       </p>
-      <ul class="list-disc pl-5 text-sm text-slate-600 space-y-1.5">
-        <li><strong>Mục đích duy nhất:</strong> Thêm các sự kiện buổi học và môn thi vào Google Calendar cá nhân của bạn theo sự cho phép của bạn.</li>
-        <li>Ứng dụng không đọc, không sửa đổi và không xóa các sự kiện cá nhân khác đã có trên lịch của bạn.</li>
-        <li>Mã truy cập (Access Token) chỉ tồn tại tạm thời trong phiên duyệt web hiện tại và không bao giờ được gửi về máy chủ nào khác.</li>
+      <ul class="list-disc pl-5 text-sm text-slate-600 space-y-2">
+        <li><strong>Phạm vi truy cập (Scope):</strong> <code class="bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-xs font-mono">https://www.googleapis.com/auth/calendar.events</code> và <code class="bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-xs font-mono">https://www.googleapis.com/auth/calendar</code>.</li>
+        <li><strong>Mục đích duy nhất:</strong> Ghi các môn học, phòng học và lịch thi vào tài khoản Google Calendar bạn chỉ định (Lịch chính hoặc bộ lịch riêng BKalendar).</li>
+        <li><strong>Không đọc thông tin nhạy cảm:</strong> Ứng dụng không thu thập danh bạ, email, lịch họp riêng tư hay bất kỳ thông tin nào ngoài việc thêm sự kiện học tập do chính bạn yêu cầu.</li>
+        <li><strong>Thời gian tồn tại của Token:</strong> Mã xác thực OAuth (Access Token) chỉ được lưu tạm trên RAM của trình duyệt trong phiên làm việc và sẽ bị xóa hoàn toàn ngay khi bạn tải lại trang hoặc đóng tab trình duyệt.</li>
       </ul>
     </section>
 
+    <!-- Section 4 -->
     <section class="space-y-3">
-      <h2 class="text-base font-bold text-slate-800">4. Bảo mật dữ liệu</h2>
+      <h2 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">4. Tuân thủ Chính sách Dữ liệu Người dùng Google (Google Limited Use Policy)</h2>
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs text-slate-700 space-y-2 leading-relaxed">
+        <p class="font-semibold text-slate-800">
+          Chính sách Sử dụng Hạn chế của Google (Limited Use Requirements):
+        </p>
+        <p>
+          Việc BKalendar 2.0 sử dụng và chuyển giao cho bất kỳ ứng dụng nào khác thông tin nhận được từ Google API sẽ tuân thủ nghiêm ngặt <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" class="text-blue-600 underline">Chính sách Dữ liệu Người dùng của Dịch vụ Google API</a>, bao gồm các yêu cầu về Sử dụng Hạn chế (Limited Use).
+        </p>
+        <p class="italic text-slate-500">
+          "BKalendar 2.0's use and transfer to any other app of information received from Google APIs will adhere to Google API Services User Data Policy, including the Limited Use requirements."
+        </p>
+      </div>
+    </section>
+
+    <!-- Section 5 -->
+    <section class="space-y-3">
+      <h2 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">5. Quyền kiểm soát của người dùng (User Revocation & Deletion)</h2>
       <p class="text-sm text-slate-600 leading-relaxed">
-        Ứng dụng tuân thủ nghiêm ngặt Chính sách Dữ liệu Người dùng của Google API Services (Google API Services User Data Policy), bao gồm các yêu cầu về Sử dụng Hạn chế (Limited Use requirements).
+        Bạn có toàn quyền thu hồi quyền truy cập Google Calendar của BKalendar 2.0 bất kỳ lúc nào bằng cách truy cập trang quản lý bảo mật của Google tại: 
+        <a href="https://myaccount.google.com/permissions" target="_blank" class="text-blue-600 hover:underline">https://myaccount.google.com/permissions</a> và chọn gỡ bỏ quyền của ứng dụng.
+      </p>
+      <p class="text-sm text-slate-600 leading-relaxed">
+        Vì ứng dụng không lưu trữ dữ liệu người dùng trên máy chủ, việc bạn thu hồi quyền hoặc xóa sự kiện trên Google Calendar sẽ xóa vĩnh viễn dữ liệu mà không cần thêm bước yêu cầu xóa nào khác.
       </p>
     </section>
 
+    <!-- Section 6 -->
     <section class="space-y-3">
-      <h2 class="text-base font-bold text-slate-800">5. Liên hệ</h2>
+      <h2 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">6. Thông tin liên hệ nhà phát triển (Developer Contact)</h2>
       <p class="text-sm text-slate-600 leading-relaxed">
-        Nếu bạn có bất kỳ câu hỏi hoặc phản hồi nào về Chính sách quyền riêng tư này, vui lòng liên hệ qua email: 
-        <a href="mailto:kwai.powie@gmail.com" class="text-blue-600 font-medium hover:underline">kwai.powie@gmail.com</a>.
+        Nếu bạn hoặc đại diện Google có bất kỳ câu hỏi, yêu cầu xác minh hoặc đóng góp liên quan đến Chính sách Quyền riêng tư này, xin vui lòng liên hệ:
       </p>
+      <div class="bg-slate-100 rounded-xl p-4 text-xs text-slate-700 space-y-1 font-mono">
+        <p><strong>Developer:</strong> Bui Kwai (HCMUT Student)</p>
+        <p><strong>Contact Email:</strong> <a href="mailto:kwai.powie@gmail.com" class="text-blue-600 underline">kwai.powie@gmail.com</a></p>
+        <p><strong>Project Repository:</strong> <a href="https://github.com/bkalendar2/Bkalendar2.0" target="_blank" class="text-blue-600 underline">https://github.com/bkalendar2/Bkalendar2.0</a></p>
+      </div>
     </section>
 
-    <div class="pt-5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-      <span>© 2026 BKalendar 2.0 Community</span>
-      <a href="https://bkalendar2.github.io/Bkalendar2.0/" class="text-blue-600 font-semibold hover:underline">← Quay lại BKalendar 2.0</a>
+    <div class="pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+      <span>© 2026 BKalendar 2.0 • For HCMUT Students</span>
+      <div class="flex items-center gap-4">
+        <a href="terms.html" class="text-blue-600 hover:underline">Terms of Service</a>
+        <span>•</span>
+        <a href="https://bkalendar2.github.io/Bkalendar2.0/" class="text-blue-600 font-semibold hover:underline">← Về trang chủ BKalendar 2.0</a>
+      </div>
     </div>
+
   </div>
 </body>
 </html>
